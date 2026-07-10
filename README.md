@@ -4,13 +4,9 @@
 
 ---
 
-![Application Frontend Snapshot](images/App_ss.png)
-
----
-
-🎥 **Project Demonstration:** https://www.youtube.com/watch?v=3WSM3dxq_iI
-
----
+<table>
+<tr>
+<td width="60%">
 
 ## Overview
 
@@ -19,6 +15,20 @@ Inventory Manager is a full-stack warehouse inventory management system designed
 The application supports multiple user roles, allowing managers, employees, suppliers, and accountants to interact with the system based on their responsibilities. By combining database management, real-time communication, and role-based access control, the project simulates a real-world inventory management platform.
 
 This project provided extensive experience in collaborative software engineering, full-stack web development, database design, Agile development practices, and team-based application development.
+
+</td>
+
+<td width="40%" align="center">
+
+<img src="images/App_ss.png" width="260"/>
+
+</td>
+</tr>
+</table>
+
+---
+
+🎥 **Project Demonstration:** https://www.youtube.com/watch?v=3WSM3dxq_iI
 
 ---
 
