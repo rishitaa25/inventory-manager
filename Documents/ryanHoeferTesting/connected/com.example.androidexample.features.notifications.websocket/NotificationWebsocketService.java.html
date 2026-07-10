@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificationWebsocketService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.notifications.websocket</a> &gt; <span class="el_source">NotificationWebsocketService.java</span></div><h1>NotificationWebsocketService.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.notifications.websocket;
+
+import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.IBinder;
+import android.util.Log;
+
+
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.example.androidexample.R;
+
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+
+public class NotificationWebsocketService extends Service {
+
+<span class="fc" id="L27">    private final Map&lt;String, WebSocketClient&gt; webSockets = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L28">    private final Map&lt;String, Boolean&gt; isConnected = new HashMap&lt;&gt;();</span>
+
+<span class="fc" id="L30">    public NotificationWebsocketService() {}</span>
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">        if (intent != null) {</span>
+<span class="fc" id="L35">            String action = intent.getAction();</span>
+
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">            if (&quot;CONNECT&quot;.equals(action)) {</span>
+<span class="fc" id="L38">                String key = intent.getStringExtra(&quot;key&quot;);</span>
+<span class="fc" id="L39">                String url = intent.getStringExtra(&quot;url&quot;);</span>
+<span class="fc" id="L40">                connectWebSocket(key, url);</span>
+
+<span class="pc bnc" id="L42" title="All 2 branches missed.">            } else if (&quot;DISCONNECT&quot;.equals(action)) {</span>
+<span class="nc" id="L43">                String key = intent.getStringExtra(&quot;key&quot;);</span>
+<span class="nc" id="L44">                disconnectWebSocket(key);</span>
+            }
+        }
+<span class="fc" id="L47">        return START_STICKY;</span>
+    }
+
+    @Override
+    public void onCreate() {
+<span class="fc" id="L52">        super.onCreate();</span>
+<span class="fc" id="L53">        LocalBroadcastManager.getInstance(this)</span>
+<span class="fc" id="L54">                .registerReceiver(messageReceiver, new IntentFilter(&quot;SendWebSocketMessage&quot;));</span>
+<span class="fc" id="L55">    }</span>
+
+    @Override
+    public void onDestroy() {
+<span class="nc" id="L59">        super.onDestroy();</span>
+
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        for (WebSocketClient client : webSockets.values()) {</span>
+<span class="nc" id="L62">            client.close();</span>
+<span class="nc" id="L63">        }</span>
+
+<span class="nc" id="L65">        webSockets.clear();</span>
+<span class="nc" id="L66">        isConnected.clear();</span>
+
+<span class="nc" id="L68">        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);</span>
+<span class="nc" id="L69">    }</span>
+
+    @Override
+    public IBinder onBind(Intent intent) {
+<span class="nc" id="L73">        return null;</span>
+    }
+
+    private void connectWebSocket(String key, String url) {
+
+<span class="fc" id="L78">        final String userKey = key;</span>
+
+        try {
+<span class="fc" id="L81">            URI serverUri = URI.create(url);</span>
+
+<span class="fc" id="L83">            WebSocketClient webSocketClient = new WebSocketClient(serverUri) {</span>
+
+                @Override
+                public void onOpen(ServerHandshake handshakedata) {
+<span class="fc" id="L87">                    Log.d(key, &quot;Connected&quot;);</span>
+<span class="fc" id="L88">                    isConnected.put(key, true);</span>
+<span class="fc" id="L89">                }</span>
+
+                @Override
+                public void onMessage(String message) {
+//                    if (key == null || message == null) return;
+//
+//                    Intent intent = new Intent(&quot;WebSocketMessageReceived&quot;);
+//                    intent.putExtra(&quot;key&quot;, key);
+//                    intent.putExtra(&quot;message&quot;, message);
+//
+//                    LocalBroadcastManager.getInstance(getApplicationContext())
+//                            .sendBroadcast(intent);
+<span class="nc" id="L101">                    Log.d(&quot;WSService&quot;, &quot;MESSAGE RECEIVED: &quot; + message);</span>
+
+<span class="nc" id="L103">                    sendNotification(message);</span>
+
+<span class="nc bnc" id="L105" title="All 4 branches missed.">                    if (userKey == null || message == null) return;</span>
+
+<span class="nc" id="L107">                    Intent intent = new Intent(&quot;WebSocketMessageReceived&quot;);</span>
+<span class="nc" id="L108">                    intent.putExtra(&quot;key&quot;, userKey);</span>
+<span class="nc" id="L109">                    intent.putExtra(&quot;message&quot;, message);</span>
+
+<span class="nc" id="L111">                    LocalBroadcastManager.getInstance(getApplicationContext())</span>
+<span class="nc" id="L112">                            .sendBroadcast(intent);</span>
+<span class="nc" id="L113">                }</span>
+
+                @Override
+                public void onClose(int code, String reason, boolean remote) {
+<span class="fc" id="L117">                    Log.d(key, &quot;Closed&quot;);</span>
+<span class="fc" id="L118">                    isConnected.put(key, false);</span>
+<span class="fc" id="L119">                }</span>
+
+                @Override
+                public void onError(Exception ex) {
+<span class="nc" id="L123">                    Log.d(key, &quot;Error&quot;);</span>
+<span class="nc" id="L124">                    isConnected.put(key, false);</span>
+<span class="nc" id="L125">                }</span>
+            };
+
+<span class="fc" id="L128">            webSockets.put(key, webSocketClient);</span>
+<span class="fc" id="L129">            webSocketClient.connect();</span>
+
+<span class="nc" id="L131">        } catch (Exception e) {</span>
+<span class="nc" id="L132">            e.printStackTrace();</span>
+<span class="fc" id="L133">        }</span>
+<span class="fc" id="L134">    }</span>
+
+<span class="fc" id="L136">    private final BroadcastReceiver messageReceiver = new BroadcastReceiver() {</span>
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+<span class="nc" id="L140">            String key = intent.getStringExtra(&quot;key&quot;);</span>
+<span class="nc" id="L141">            String message = intent.getStringExtra(&quot;message&quot;);</span>
+
+<span class="nc bnc" id="L143" title="All 4 branches missed.">            if (key == null || message == null) return;</span>
+
+<span class="nc" id="L145">            WebSocketClient webSocket = webSockets.get(key);</span>
+
+<span class="nc bnc" id="L147" title="All 4 branches missed.">            if (webSocket != null &amp;&amp; Boolean.TRUE.equals(isConnected.get(key))) {</span>
+<span class="nc" id="L148">                webSocket.send(message);</span>
+            }
+<span class="nc" id="L150">        }</span>
+    };
+
+    private void disconnectWebSocket(String key) {
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (webSockets.containsKey(key)) {</span>
+<span class="nc" id="L155">            webSockets.get(key).close();</span>
+<span class="nc" id="L156">            isConnected.put(key, false);</span>
+        }
+<span class="nc" id="L158">    }</span>
+
+    private void sendNotification(String message) {
+
+<span class="nc" id="L162">        NotificationCompat.Builder builder =</span>
+                new NotificationCompat.Builder(this, &quot;shipment_channel&quot;)
+<span class="nc" id="L164">                        .setSmallIcon(R.drawable.ic_shipments)</span>
+<span class="nc" id="L165">                        .setContentTitle(&quot;Shipment Update&quot;)</span>
+<span class="nc" id="L166">                        .setContentText(message)</span>
+<span class="nc" id="L167">                        .setPriority(NotificationCompat.PRIORITY_HIGH)</span>
+<span class="nc" id="L168">                        .setAutoCancel(true);</span>
+
+<span class="nc" id="L170">        NotificationManagerCompat manager =</span>
+<span class="nc" id="L171">                NotificationManagerCompat.from(this);</span>
+
+<span class="nc" id="L173">        manager.notify((int) System.currentTimeMillis(), builder.build());</span>
+<span class="nc" id="L174">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

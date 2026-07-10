@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">AndroidExample</string>
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+    <string name="confirm_password_hint">Confirm Password</string>
+    <string name="ssn_hint">SSN</string>
+    <string name="signup_button">Sign Up</string>
+    <string name="home_button">Home</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="app_widget_description">This is an app widget description</string>
+    <string name="inventory_manager">Inventory Manager</string>
+</resources>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AddItemResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.DTO.Items.Add</a> &gt; <span class="el_source">AddItemResponse.java</span></div><h1>AddItemResponse.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.DTO.Items.Add;
+
+import lombok.Data;
+import org.example.inventory_manager_beta1.entities.Item;
+
+/**
+ * A lightweight Data Transfer Object used for sending a status message
+ * from backend to frontend with information about Item creation
+ */
+@Data
+public class AddItemResponse {
+    /**
+     * An Item variable used for transferring the new Item
+     */
+    private Item item;
+    /**
+     * A String variable used for transferring the Item's name
+     */
+    private String itemName;
+    /**
+     * An Integer variable used for transferring the Item's amount
+     */
+    private Integer amountOfItem;
+    /**
+     * A String variable used for transferring a confirmation message
+     */
+    private String message;
+    /**
+     * INIT: The All Args constructor for creating an AddItemResponse
+     * @param item
+     *  The new Item created
+     * @param itemName
+     *  The name of the Item being created
+     * @param amountOfItem
+     *  The amount of the Item
+     */
+<span class="nc" id="L37">    public AddItemResponse(Item item, String itemName, Integer amountOfItem) {</span>
+<span class="nc" id="L38">        this.item = item;</span>
+<span class="nc" id="L39">        this.itemName = itemName;</span>
+<span class="nc" id="L40">        this.amountOfItem = amountOfItem;</span>
+<span class="nc" id="L41">        message = &quot;Item successfully created. Name: &quot; + itemName + &quot; , Quantity: &quot; + amountOfItem;</span>
+<span class="nc" id="L42">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

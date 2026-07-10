@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+
+    <!-- White circular background -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M480,80A400,400 0 1,1 479.9,80Z"/>
+
+    <!-- Icon -->
+    <group
+        android:scaleX="1.104"
+        android:scaleY="1.104"
+        android:translateX="-49.92"
+        android:translateY="-49.92">
+
+        <path
+            android:fillColor="@color/text"
+            android:pathData="M234,684Q285,645 348,622.5Q411,600 480,600Q549,600 612,622.5Q675,645 726,684Q761,643 780.5,591Q800,539 800,480Q800,347 706.5,253.5Q613,160 480,160Q347,160 253.5,253.5Q160,347 160,480Q160,539 179.5,591Q199,643 234,684ZM380.5,479.5Q340,439 340,380Q340,321 380.5,280.5Q421,240 480,240Q539,240 579.5,280.5Q620,321 620,380Q620,439 579.5,479.5Q539,520 480,520Q421,520 380.5,479.5ZM580,784.5Q627,769 666,740Q627,711 580,695.5Q533,680 480,680Q427,680 380,695.5Q333,711 294,740Q333,769 380,784.5Q427,800 480,800Q533,800 580,784.5ZM523,423Q540,406 540,380Q540,354 523,337Q506,320 480,320Q454,320 437,337Q420,354 420,380Q420,406 437,423Q454,440 480,440Q506,440 523,423Z"/>
+
+    </group>
+
+</vector>

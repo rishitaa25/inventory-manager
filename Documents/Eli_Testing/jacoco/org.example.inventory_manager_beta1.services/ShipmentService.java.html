@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShipmentService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.services</a> &gt; <span class="el_source">ShipmentService.java</span></div><h1>ShipmentService.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.services;
+
+import org.example.inventory_manager_beta1.DTO.Items.Add.AddItemRequest;
+import org.example.inventory_manager_beta1.DTO.Shipments.ShipmentRequest;
+import org.example.inventory_manager_beta1.DTO.Shipments.ShipmentResponse;
+import org.example.inventory_manager_beta1.DTO.Shipments.ShipmentSearchResponse;
+import org.example.inventory_manager_beta1.DTO.Shipments.ShipmentUpdateRequest;
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.IllegalActionException;
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.ShipmentNotFoundException;
+import org.example.inventory_manager_beta1.entities.*;
+import org.example.inventory_manager_beta1.mainApplicationClasses.WS_ShipmentNotification;
+import org.example.inventory_manager_beta1.repositories.ShipmentRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.example.inventory_manager_beta1.repositories.GroupChatRepository;
+
+
+/**
+ * A robust service class to handle all the different logic and search methods relating
+ * to the Shipment class. It is complete with all the ShipmentRepository search methods
+ * defined, and it handles every Shipment related logic method with included custom error handling
+ */
+@Service
+public class ShipmentService {
+    /**
+     * The auto-injected ShipmentRepository for handling custom searches
+     */
+    @Autowired
+    private final ShipmentRepository shipmentRepository;
+    /**
+     * The auto-injected groupChatRepository for handling custom searches
+     */
+    @Autowired
+    private GroupChatRepository groupChatRepository;
+
+    /**
+     * INIT: Used for initializing the shipmentRepository for custom database searches
+     * @param shipmentRepository
+     *  The repository containing the custom search methods
+     */
+<span class="fc" id="L45">    public ShipmentService(ShipmentRepository shipmentRepository) {this.shipmentRepository = shipmentRepository;}</span>
+
+    /**
+     * The auto-injected AdminService class for handling AdminService logic
+     */
+    @Autowired
+    private AdminService adminService;
+
+    /**
+     * The auto-injected DriverService class for handling DriverService logic
+     */
+    @Autowired
+    private DriverService driverService;
+
+    /**
+     * The auto-injected ItemService class for handling ItemService logic
+     */
+    @Autowired
+    private ItemService itemService;
+
+    /**
+     * The auto-injected InventoryService class for handling InventoryService logic
+     */
+    @Autowired
+    private InventoryService inventoryService;
+
+    /**
+     * The auto-injected InventoryChangeService class for handling
+     * InventoryChangeService logic
+     */
+    @Autowired
+    private InventoryChangeService inventoryChangeService;
+
+    /**
+     * The auto-injected WebSocket class for handling notifications
+     */
+    @Autowired
+    private WS_ShipmentNotification wsShipmentNotification;
+
+    /*==================================SEARCH METHODS==================================*/
+
+    /**
+     * SEARCH: A search method to find a specific Shipment by id
+     * @param id
+     *  The ID number of the Shipment
+     * @return
+     *  The Shipment object if it exists
+     */
+    public Shipment findById(Integer id) {
+<span class="nc" id="L94">        return shipmentRepository.findById(id)</span>
+<span class="nc" id="L95">                .orElseThrow(() -&gt; new ShipmentNotFoundException(&quot;Shipment with ID: &quot; +  id + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding all Shipments in the database
+     * @return
+     *  A list of all existing Shipments in the database
+     */
+    @Transactional
+    public List&lt;ShipmentSearchResponse&gt; findAll() {
+<span class="nc" id="L105">        return shipmentRepository.findAll().stream()</span>
+<span class="nc" id="L106">                .map(shipment -&gt; new ShipmentSearchResponse(</span>
+<span class="nc" id="L107">                        shipment.getShipmentId(),</span>
+<span class="nc" id="L108">                        shipment.getArrivalDate(),</span>
+<span class="nc" id="L109">                        shipment.getArrived(),</span>
+<span class="nc" id="L110">                        shipment.getOffloaded(),</span>
+<span class="nc" id="L111">                        shipment.getItems(),</span>
+<span class="nc" id="L112">                        shipment.getShippingCompanies(),</span>
+<span class="nc" id="L113">                        shipment.getDrivers(),</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">                        shipment.getCreationAdmin() != null ? shipment.getCreationAdmin().getUserName() : null</span>
+<span class="nc" id="L115">                )).collect(Collectors.toList());</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding all Shipments in the database
+     * and formats them into a DTO
+     * @return
+     *  A list of all existing Shipments in the database
+     */
+    @Transactional
+    public List&lt;ShipmentSearchResponse&gt; findAllDTO() {
+<span class="nc" id="L126">        return shipmentRepository.findAll().stream()</span>
+<span class="nc" id="L127">                .map(shipment -&gt; new ShipmentSearchResponse(</span>
+<span class="nc" id="L128">                        shipment.getShipmentId(),</span>
+<span class="nc" id="L129">                        shipment.getArrivalDate(),</span>
+<span class="nc" id="L130">                        shipment.getArrived(),</span>
+<span class="nc" id="L131">                        shipment.getOffloaded(),</span>
+<span class="nc" id="L132">                        shipment.getItems(),</span>
+<span class="nc" id="L133">                        shipment.getShippingCompanies(),</span>
+<span class="nc" id="L134">                        shipment.getDrivers(),</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">                        shipment.getCreationAdmin() != null ? shipment.getCreationAdmin().getUserName() : null</span>
+<span class="nc" id="L136">                )).collect(Collectors.toList());</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding all Shipments assigned to a Driver
+     * using their employee identification number
+     * @param employeeId
+     *  The employee identification number of the Driver being searched for
+     * @return
+     *  A list of all Shipments assigned to the Driver with the matching employee ID
+     */
+    @Transactional
+    public List&lt;ShipmentSearchResponse&gt; findByDrivers(Integer employeeId) {
+<span class="nc" id="L149">        return shipmentRepository.findByDrivers_EmployeeId(employeeId).stream()</span>
+<span class="nc" id="L150">                .map(shipment -&gt; new ShipmentSearchResponse(</span>
+<span class="nc" id="L151">                        shipment.getShipmentId(),</span>
+<span class="nc" id="L152">                        shipment.getArrivalDate(),</span>
+<span class="nc" id="L153">                        shipment.getArrived(),</span>
+<span class="nc" id="L154">                        shipment.getOffloaded(),</span>
+<span class="nc" id="L155">                        shipment.getItems(),</span>
+<span class="nc" id="L156">                        shipment.getShippingCompanies(),</span>
+<span class="nc" id="L157">                        shipment.getDrivers(),</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">                        shipment.getCreationAdmin() != null ? shipment.getCreationAdmin().getUserName() : null</span>
+<span class="nc" id="L159">                )).collect(Collectors.toList());</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding all Shipments matching a given arrival status
+     * @param arrived
+     *  The arrival status of the Shipment(s) being searched for
+     * @return
+     *  A list of all Shipments with a matching arrival status
+     */
+    @Transactional
+    public List&lt;ShipmentSearchResponse&gt; findByArrived(Boolean arrived) {
+<span class="nc" id="L171">        return shipmentRepository.findByArrived(arrived).stream()</span>
+<span class="nc" id="L172">                .map(shipment -&gt; new ShipmentSearchResponse(</span>
+<span class="nc" id="L173">                        shipment.getShipmentId(),</span>
+<span class="nc" id="L174">                        shipment.getArrivalDate(),</span>
+<span class="nc" id="L175">                        shipment.getArrived(),</span>
+<span class="nc" id="L176">                        shipment.getOffloaded(),</span>
+<span class="nc" id="L177">                        shipment.getItems(),</span>
+<span class="nc" id="L178">                        shipment.getShippingCompanies(),</span>
+<span class="nc" id="L179">                        shipment.getDrivers(),</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">                        shipment.getCreationAdmin() != null ? shipment.getCreationAdmin().getUserName() : null</span>
+<span class="nc" id="L181">                )).collect(Collectors.toList());</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding all Shipments scheduled for a given delivery date
+     * @param deliveryDay
+     *  The delivery date of the Shipment(s) being searched for
+     * @return
+     *  A list of all Shipments with a matching delivery date
+     */
+    @Transactional
+    public List&lt;ShipmentSearchResponse&gt; findByDeliveryDate(LocalDate deliveryDay) {
+<span class="nc" id="L193">        return shipmentRepository.findByArrivalDate(deliveryDay).stream()</span>
+<span class="nc" id="L194">                .map(shipment -&gt; new ShipmentSearchResponse(</span>
+<span class="nc" id="L195">                        shipment.getShipmentId(),</span>
+<span class="nc" id="L196">                        shipment.getArrivalDate(),</span>
+<span class="nc" id="L197">                        shipment.getArrived(),</span>
+<span class="nc" id="L198">                        shipment.getOffloaded(),</span>
+<span class="nc" id="L199">                        shipment.getItems(),</span>
+<span class="nc" id="L200">                        shipment.getShippingCompanies(),</span>
+<span class="nc" id="L201">                        shipment.getDrivers(),</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">                        shipment.getCreationAdmin() != null ? shipment.getCreationAdmin().getUserName() : null</span>
+<span class="nc" id="L203">                )).collect(Collectors.toList());</span>
+    }
+
+    /*==================================LOGIC METHODS==================================*/
+
+    /**
+     * CREATE: A logic method that creates a new Shipment object, assigns the creation
+     * Admin, items, drivers, and shipping companies, saves it to the database, and
+     * notifies all relevant users via WebSocket
+     * @param shipmentRequest
+     *  The DTO containing all the information for the new Shipment
+     */
+    @Transactional
+    public ShipmentResponse addNewShipment(ShipmentRequest shipmentRequest) {
+<span class="nc" id="L217">        Shipment requestedShipment = new Shipment(shipmentRequest.getRequestedDeliveryDate());</span>
+
+        //Admin that created the shipment request
+<span class="nc" id="L220">        Admin creationAdmin = adminService.findById(shipmentRequest.getId());</span>
+<span class="nc" id="L221">        requestedShipment.setCreationAdmin(creationAdmin);</span>
+
+<span class="nc" id="L223">        shipmentRepository.save(requestedShipment);</span>
+
+        //Adding items to Shipment
+<span class="nc" id="L226">        requestedShipment.setItems(new ArrayList&lt;&gt;());</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        for (AddItemRequest itemRequest : shipmentRequest.getItems()) {</span>
+<span class="nc" id="L228">            Item item = itemService.addNewItem(itemRequest).getItem();</span>
+<span class="nc" id="L229">            itemService.saveItem(item);</span>
+<span class="nc" id="L230">            item.setShipment(requestedShipment);</span>
+<span class="nc" id="L231">            requestedShipment.getItems().add(item);</span>
+<span class="nc" id="L232">        }</span>
+
+        //Adding Drivers to Shipment
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        List&lt;Driver&gt; drivers = shipmentRequest.getDriverIds() != null</span>
+<span class="nc" id="L236">                ? driverService.findAllById(shipmentRequest.getDriverIds())</span>
+<span class="nc" id="L237">                : new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L238">        requestedShipment.setDrivers(drivers);</span>
+
+<span class="nc" id="L240">        createShipmentChatRoom(requestedShipment, creationAdmin, drivers);</span>
+
+        //Adding Shipping Companies
+<span class="nc" id="L243">        List&lt;ShippingCompany&gt; companies = requestedShipment.getItems().stream()</span>
+<span class="nc" id="L244">                .map(Item::getShippingCompany)</span>
+<span class="nc" id="L245">                .filter(Objects::nonNull)</span>
+<span class="nc" id="L246">                .distinct()</span>
+<span class="nc" id="L247">                .collect(Collectors.toList());</span>
+<span class="nc" id="L248">        requestedShipment.setShippingCompanies(companies);</span>
+
+<span class="nc" id="L250">        shipmentRepository.save(requestedShipment);</span>
+
+        //Notifying the admin that made the shipment request
+<span class="nc" id="L253">        wsShipmentNotification.notifyUser(creationAdmin.getUserName(),</span>
+<span class="nc" id="L254">                &quot;Your shipment request #&quot; + requestedShipment.getShipmentId() + &quot; has been created successfully&quot;);</span>
+
+        //Notifying all drivers that were assigned to the shipment
+<span class="nc bnc" id="L257" title="All 2 branches missed.">        for (Driver driver : drivers) {</span>
+<span class="nc" id="L258">            wsShipmentNotification.notifyUser(driver.getUserName(),</span>
+<span class="nc" id="L259">                    &quot;You have been assigned to shipment #&quot; + requestedShipment.getShipmentId());</span>
+<span class="nc" id="L260">        }</span>
+
+<span class="nc" id="L262">        return new ShipmentResponse(requestedShipment.getShipmentId(), requestedShipment.getCreationAdmin().getEmployeeId(), requestedShipment.getItems(), requestedShipment.getArrivalDate(), requestedShipment.getArrived(), requestedShipment.getOffloaded());</span>
+    }
+
+    /**
+     * UPDATE: A logic method that updates an existing Shipment's delivery date and
+     * assigned drivers
+     * @param shipmentUpdateRequest
+     *  The DTO containing the updated information for the Shipment
+     */
+    @Transactional
+    public void updateShipment(ShipmentUpdateRequest shipmentUpdateRequest) {
+<span class="nc" id="L273">        Shipment updatedShipment = findById(shipmentUpdateRequest.getShipmentId());</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">        if (shipmentUpdateRequest.getArrivalDate() != null)</span>
+<span class="nc" id="L275">            updatedShipment.setArrivalDate(shipmentUpdateRequest.getArrivalDate());</span>
+<span class="nc" id="L276">        updatedShipment.setArrived(shipmentUpdateRequest.isArrived());</span>
+<span class="nc" id="L277">        updatedShipment.setOffloaded(shipmentUpdateRequest.isOffloaded());</span>
+<span class="nc" id="L278">        shipmentRepository.save(updatedShipment);</span>
+
+<span class="nc" id="L280">        closeShipmentChatIfComplete(updatedShipment);</span>
+<span class="nc" id="L281">    }</span>
+
+    /**
+     * UPDATE: A logic method that assigns a Driver to an existing Shipment
+     * @param driverId
+     *  The identification number of the Driver being assigned
+     * @param shipmentId
+     *  The identification number of the Shipment being assigned a Driver
+     */
+    public void assignDriver(Integer driverId, Integer shipmentId) {
+<span class="nc" id="L291">        Shipment shipment = findById(shipmentId);</span>
+<span class="nc" id="L292">        Driver driver = driverService.findById(driverId);</span>
+<span class="nc" id="L293">        shipment.getDrivers().add(driver);</span>
+<span class="nc" id="L294">        shipmentRepository.save(shipment);</span>
+<span class="nc" id="L295">    }</span>
+
+    /**
+     * UPDATE: A logic method that marks a Shipment as arrived by setting its
+     * arrived flag to true
+     * @param shipmentId
+     *  The identification number of the Shipment that has arrived
+     */
+    public void arrived(Integer shipmentId) {
+<span class="nc" id="L304">        Shipment shipment = findById(shipmentId);</span>
+<span class="nc" id="L305">        shipment.setArrived(true);</span>
+<span class="nc" id="L306">        shipmentRepository.save(shipment);</span>
+<span class="nc" id="L307">        closeShipmentChatIfComplete(shipment);</span>
+<span class="nc" id="L308">    }</span>
+
+    /**
+     * UPDATE: A logic method that offloads a Shipment by adding all of its Items
+     * into the Inventory, logging each change, and marking the Shipment as offloaded
+     * @param shipmentId
+     *  The identification number of the Shipment being offloaded
+     * @throws IllegalActionException
+     *  Custom RuntimeException if the Shipment has already been offloaded or hasn't arrived yet
+     */
+    @Transactional
+    public void offloadShipment(Integer shipmentId) {
+<span class="nc" id="L320">        Shipment shipment = findById(shipmentId);</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">        if (!shipment.getArrived())</span>
+<span class="nc" id="L322">            throw new IllegalActionException(&quot;Shipment #&quot; + shipmentId + &quot; has not arrived yet&quot;);</span>
+
+<span class="nc bnc" id="L324" title="All 2 branches missed.">        if (shipment.getOffloaded())</span>
+<span class="nc" id="L325">            throw new IllegalActionException(&quot;Shipment #&quot; + shipmentId + &quot; has already been offloaded&quot;);</span>
+
+<span class="nc bnc" id="L327" title="All 2 branches missed.">        for (Item item : shipment.getItems()) {</span>
+<span class="nc" id="L328">            Inventory existingItem = inventoryService.findByItemName(item.getItemName());</span>
+
+<span class="nc bnc" id="L330" title="All 2 branches missed.">            if (existingItem != null) {</span>
+                //Item already exists
+<span class="nc" id="L332">                int previousAmount = existingItem.getAmountOfItem();</span>
+<span class="nc" id="L333">                existingItem.setAmountOfItem(previousAmount + item.getQuantity());</span>
+<span class="nc" id="L334">                inventoryService.saveItem(existingItem);</span>
+
+                //Log the change
+<span class="nc" id="L337">                InventoryChange change = new InventoryChange(existingItem.getSkuNumber(), item.getQuantity(), shipment.getCreationAdmin().getEmployeeId());</span>
+<span class="nc" id="L338">                inventoryChangeService.addChange(change);</span>
+
+<span class="nc" id="L340">            } else {</span>
+                //Item doesn't exist
+<span class="nc" id="L342">                inventoryService.saveItem(new Inventory(item.getItemName(), item.getQuantity()));</span>
+            }
+<span class="nc" id="L344">        }</span>
+
+<span class="nc" id="L346">        shipment.setOffloaded(true);</span>
+<span class="nc" id="L347">        shipmentRepository.save(shipment);</span>
+<span class="nc" id="L348">        closeShipmentChatIfComplete(shipment);</span>
+<span class="nc" id="L349">    }</span>
+
+    /**
+     * DELETE: A logic method that will delete a shipment from the database
+     * using its identification number
+     * @param shipmentId
+     *  The identification number of the shipment being deleted
+     */
+    public void deleteShipment(Integer shipmentId) {
+<span class="nc" id="L358">        Shipment shipment = findById(shipmentId);</span>
+<span class="nc" id="L359">        shipmentRepository.delete(shipment);</span>
+<span class="nc" id="L360">    }</span>
+
+    /**
+     * DELETE: A logic method that will delete all shipments from the database
+     */
+<span class="nc" id="L365">    public void deleteAllShipments() {shipmentRepository.deleteAll();}</span>
+
+    private void createShipmentChatRoom(Shipment shipment, Admin admin, List&lt;Driver&gt; drivers) {
+<span class="nc" id="L368">        String roomName = &quot;shipment-&quot; + shipment.getShipmentId();</span>
+
+<span class="nc bnc" id="L370" title="All 2 branches missed.">        if (groupChatRepository.findByRoomName(roomName).isPresent()) {</span>
+<span class="nc" id="L371">            return;</span>
+        }
+
+<span class="nc" id="L374">        GroupChat groupChat = new GroupChat();</span>
+<span class="nc" id="L375">        groupChat.setRoomName(roomName);</span>
+<span class="nc" id="L376">        groupChat.setShipmentId(shipment.getShipmentId());</span>
+<span class="nc" id="L377">        groupChat.setAdmin(admin);</span>
+<span class="nc" id="L378">        groupChat.setActive(true);</span>
+
+<span class="nc" id="L380">        groupChat.getMembers().add(admin);</span>
+
+<span class="nc bnc" id="L382" title="All 2 branches missed.">        if (drivers != null) {</span>
+<span class="nc" id="L383">            groupChat.getMembers().addAll(drivers);</span>
+        }
+
+<span class="nc" id="L386">        groupChatRepository.save(groupChat);</span>
+<span class="nc" id="L387">    }</span>
+
+    private void closeShipmentChatIfComplete(Shipment shipment) {
+<span class="nc bnc" id="L390" title="All 4 branches missed.">        if (Boolean.TRUE.equals(shipment.getArrived()) &amp;&amp; Boolean.TRUE.equals(shipment.getOffloaded())) {</span>
+<span class="nc" id="L391">            groupChatRepository.findByShipmentId(shipment.getShipmentId()).ifPresent(groupChat -&gt; {</span>
+<span class="nc" id="L392">                groupChat.setActive(false);</span>
+<span class="nc" id="L393">                groupChatRepository.save(groupChat);</span>
+<span class="nc" id="L394">            });</span>
+        }
+<span class="nc" id="L396">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

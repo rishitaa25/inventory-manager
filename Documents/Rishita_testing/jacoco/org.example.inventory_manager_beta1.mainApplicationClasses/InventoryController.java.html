@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InventoryController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.mainApplicationClasses</a> &gt; <span class="el_source">InventoryController.java</span></div><h1>InventoryController.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.mainApplicationClasses;
+
+import org.example.inventory_manager_beta1.DTO.Inventories.AddInventoryRequest;
+import org.example.inventory_manager_beta1.DTO.Inventories.InventoryChangeRequest;
+import org.example.inventory_manager_beta1.entities.Inventory;
+import org.example.inventory_manager_beta1.entities.InventoryChange;
+import org.example.inventory_manager_beta1.services.InventoryChangeService;
+import org.example.inventory_manager_beta1.services.InventoryService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+<span class="fc" id="L15">public class InventoryController {</span>
+
+    @Autowired
+    private InventoryService inventoryService;
+
+    /**
+     * The auto-injected inventoryChangeService class for handling Inventory change logic
+     */
+    @Autowired
+    private InventoryChangeService changeServices;
+
+    /**
+     * POST Add inventory item
+     * {
+     *   &quot;skuNumber&quot;: 101,
+     *   &quot;itemName&quot;: &quot;Milk&quot;,
+     *   &quot;itemDescription&quot;: &quot;1 gallon milk&quot;,
+     *   &quot;amountOfItem&quot;: 20
+     * }
+     */
+    @PostMapping(&quot;/inventory/add&quot;)
+    public Boolean addInventory(@RequestBody AddInventoryRequest request){
+
+<span class="fc" id="L38">        Inventory item = new Inventory(</span>
+<span class="fc" id="L39">                request.getItemName(),</span>
+<span class="fc" id="L40">                request.getItemDescription(),</span>
+<span class="fc" id="L41">                request.getAmountOfItem()</span>
+        );
+
+<span class="fc" id="L44">        inventoryService.saveItem(item);</span>
+<span class="fc" id="L45">        return true;</span>
+    }
+
+    /**
+     * GET All inventory
+     */
+    @GetMapping(&quot;/inventory&quot;)
+    public List&lt;Inventory&gt; getInventory(){
+<span class="nc" id="L53">        return inventoryService.findAll();</span>
+    }
+
+    /**
+     * GET Single item
+     */
+    @GetMapping(&quot;/inventory/{sku}&quot;)
+    public Inventory getItem(@PathVariable Integer sku){
+<span class="nc" id="L61">        return inventoryService.findBySku(sku);</span>
+    }
+
+    /**
+     * PUT Update amount + store history
+     * {
+     *   &quot;changeID&quot;: 1,
+     *   &quot;skuNumber&quot;: 101,
+     *   &quot;amountOfItem&quot;: 15,
+     *   &quot;employeeID&quot;: 234
+     * }
+     */
+    @PutMapping(&quot;/inventory/update&quot;)
+    public Boolean updateInventory(@RequestBody InventoryChangeRequest request){
+
+<span class="nc" id="L76">        Inventory item = inventoryService.findBySku(request.getSkuNumber());</span>
+
+<span class="nc" id="L78">        item.setAmountOfItem(item.getAmountOfItem() + request.getAmountOfItem());</span>
+<span class="nc" id="L79">        inventoryService.saveItem(item);</span>
+
+<span class="nc" id="L81">        InventoryChange change = new InventoryChange(</span>
+<span class="nc" id="L82">                request.getSkuNumber(),</span>
+<span class="nc" id="L83">                request.getAmountOfItem(),</span>
+<span class="nc" id="L84">                request.getEmployeeId()</span>
+        );
+
+<span class="nc" id="L87">        changeServices.addChange(change);</span>
+<span class="nc" id="L88">        return true;</span>
+    }
+
+    /**
+     * DELETE inventory item
+     */
+    @DeleteMapping(&quot;/inventory/delete/{sku}&quot;)
+    public Boolean deleteItem(@PathVariable Integer sku){
+<span class="nc" id="L96">        inventoryService.deleteItem(sku);</span>
+<span class="nc" id="L97">        return true;</span>
+    }
+
+    /**
+     * GET change history
+     */
+    @GetMapping(&quot;/inventory/changes&quot;)
+    public List&lt;InventoryChange&gt; getChanges(){
+<span class="nc" id="L105">        return changeServices.findAll();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>shipmentScheduleActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.shipments.ui</a> &gt; <span class="el_source">shipmentScheduleActivity.java</span></div><h1>shipmentScheduleActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.shipments.ui;
+
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+import com.example.androidexample.R;
+import com.example.androidexample.features.NetworkCallback;
+import com.example.androidexample.features.shipments.enums.StorageType;
+import com.example.androidexample.features.shipments.model.ShipmentItemObject;
+import com.example.androidexample.features.shipments.services.ShipmentRequestMethods;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="fc" id="L27">public class shipmentScheduleActivity extends AppCompatActivity {</span>
+
+    //UI components
+    private Button scheduleButton, cancelButton;
+    private ImageView addItemButton, profile, menu;
+    private TextView shipmentStatusMsg;
+    private EditText shipmentScheduledDate, itemNameText, storageLocationText, quantityText, weightText, storageTypeText, adminIdText;
+<span class="fc" id="L34">    private boolean isScheduleConfirmed = false;</span>
+
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L40">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L41">        setContentView(R.layout.activity_shipment_sched);</span>
+
+        // Intialize UI components
+<span class="fc" id="L44">        shipmentStatusMsg = findViewById(R.id.shipment_status_msg);</span>
+<span class="fc" id="L45">        scheduleButton = findViewById(R.id.schedule_button);</span>
+<span class="fc" id="L46">        cancelButton = findViewById(R.id.cancel_button);</span>
+<span class="fc" id="L47">        shipmentScheduledDate = findViewById(R.id.shipment_shipmentDate);</span>
+<span class="fc" id="L48">        adminIdText = findViewById(R.id.shipment_admin);</span>
+<span class="fc" id="L49">        addItemButton = findViewById(R.id.addItemButton);</span>
+<span class="fc" id="L50">        itemNameText = findViewById(R.id.itemNameInput);</span>
+<span class="fc" id="L51">        storageLocationText = findViewById(R.id.storageLocationInput);</span>
+<span class="fc" id="L52">        quantityText = findViewById(R.id.quantityInput);</span>
+<span class="fc" id="L53">        weightText = findViewById(R.id.weightInput);</span>
+<span class="fc" id="L54">        storageTypeText = findViewById(R.id.storageType);</span>
+<span class="fc" id="L55">        profile = findViewById(R.id.profile_icon);</span>
+
+<span class="fc" id="L57">        BannerHelper.setupBanner(this, profile, menu);</span>
+
+        // Get Shipment Items from user
+
+<span class="fc" id="L61">        List&lt;ShipmentItemObject&gt; items = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L63">        addItemButton.setOnClickListener(view -&gt; {</span>
+
+<span class="fc" id="L65">            String itemName = itemNameText.getText().toString().trim();</span>
+<span class="fc" id="L66">            String storageLocation = storageLocationText.getText().toString().trim();</span>
+<span class="fc" id="L67">            String quantity = quantityText.getText().toString().trim();</span>
+<span class="fc" id="L68">            String weight = weightText.getText().toString().trim();</span>
+<span class="fc" id="L69">            String storageTypeString = storageTypeText.getText().toString().trim();</span>
+
+<span class="pc bpc" id="L71" title="4 of 10 branches missed.">            if(itemName.isEmpty() || storageLocation.isEmpty() || quantity.isEmpty() || weight.isEmpty() || storageTypeString.isEmpty()){</span>
+<span class="fc" id="L72">                Toast.makeText(this, &quot;Complete all fields&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L73">                shipmentStatusMsg.setText(&quot;Complete all fields&quot;);</span>
+<span class="fc" id="L74">                return;</span>
+            } else {
+
+<span class="fc" id="L77">                Log.d(&quot;ITEM&quot;, itemName + &quot; &quot; + storageLocation + &quot; &quot; + quantity + &quot; &quot; + weight + &quot; &quot; + storageTypeString);</span>
+
+                try{
+<span class="fc" id="L80">                    StorageType storageType = StorageType.valueOf(storageTypeString);</span>
+<span class="fc" id="L81">                } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L82">                    Toast.makeText(this, &quot;Invalid storage type&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L83">                    shipmentStatusMsg.setText(&quot;Invalid storage type. Chose from DRY, REFRIGERATED, or FROZEN&quot;);</span>
+<span class="fc" id="L84">                    return;</span>
+<span class="fc" id="L85">                }</span>
+
+                try {
+<span class="fc" id="L88">                    int quantityInt = Integer.parseInt(quantity);</span>
+<span class="fc" id="L89">                    int weightInt = Integer.parseInt(weight);</span>
+
+                    // add item to items list
+<span class="fc" id="L92">                    items.add(new ShipmentItemObject(itemName, storageLocation,  quantityInt, weightInt, storageTypeString));</span>
+
+                    // clear text fields
+<span class="fc" id="L95">                    itemNameText.setText(&quot;&quot;);</span>
+<span class="fc" id="L96">                    storageLocationText.setText(&quot;&quot;);</span>
+<span class="fc" id="L97">                    quantityText.setText(&quot;&quot;);</span>
+<span class="fc" id="L98">                    weightText.setText(&quot;&quot;);</span>
+<span class="fc" id="L99">                    storageTypeText.setText(&quot;&quot;);</span>
+<span class="fc" id="L100">                    shipmentStatusMsg.setText(&quot;Item Added&quot;);</span>
+<span class="nc" id="L101">                } catch (NumberFormatException e) {</span>
+<span class="nc" id="L102">                    Toast.makeText(this, &quot;Quantity and Weight must be valid numbers&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L103">                    shipmentStatusMsg.setText(&quot;Invalid quantity or weight&quot;);</span>
+<span class="fc" id="L104">                }</span>
+            }
+
+<span class="fc" id="L107">        });</span>
+
+
+        // Set onclick for schedule button
+<span class="fc" id="L111">        scheduleButton.setOnClickListener(view -&gt; {</span>
+
+<span class="fc bfc" id="L113" title="All 2 branches covered.">            if (!isScheduleConfirmed)</span>
+            {
+                // First click → ask for confirmation
+<span class="fc" id="L116">                shipmentStatusMsg.setText(&quot;Are all items added? Click schedule again to confirm.&quot;);</span>
+<span class="fc" id="L117">                isScheduleConfirmed = true;</span>
+<span class="fc" id="L118">                return;</span>
+            }
+
+<span class="fc" id="L121">            String adminIdString = adminIdText.getText().toString().trim();</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">            if (adminIdString.isEmpty()) {</span>
+<span class="nc" id="L123">                Toast.makeText(this, &quot;Enter Admin ID&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L124">                shipmentStatusMsg.setText(&quot;Enter Admin ID&quot;);</span>
+<span class="nc" id="L125">                return;</span>
+            }
+
+            int adminId;
+            try {
+<span class="fc" id="L130">                adminId = Integer.parseInt(adminIdString);</span>
+<span class="nc" id="L131">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L132">                Toast.makeText(this, &quot;Admin ID must be a number&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L133">                shipmentStatusMsg.setText(&quot;Invalid Admin ID&quot;);</span>
+<span class="nc" id="L134">                return;</span>
+<span class="fc" id="L135">            }</span>
+
+            // Get information from text fields
+<span class="fc" id="L138">            DateTimeFormatter formatter = null;</span>
+            LocalDate scheduledDate;
+
+<span class="fc" id="L141">            String dateString = shipmentScheduledDate.getText().toString().trim();</span>
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">            if (dateString.isEmpty()) {</span>
+<span class="nc" id="L143">                Toast.makeText(this, &quot;Enter a date&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L144">                shipmentStatusMsg.setText(&quot;Enter a date&quot;);</span>
+<span class="nc" id="L145">                return;</span>
+            }
+
+            try {
+                // in oder to use LocalDate, we need ensure api is currrent enoguh
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">                if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+<span class="fc" id="L151">                    formatter = DateTimeFormatter.ofPattern(&quot;MM-dd-yyyy&quot;);</span>
+<span class="fc" id="L152">                    scheduledDate = LocalDate.parse(dateString, formatter);</span>
+                } else {
+<span class="nc" id="L154">                    scheduledDate = null;</span>
+                }
+<span class="nc" id="L156">            } catch (Exception e) {</span>
+<span class="nc" id="L157">                Log.e(&quot;DATE_PARSE_ERROR&quot;, &quot;Invalid date format&quot;, e);</span>
+<span class="nc" id="L158">                Toast.makeText(this, &quot;Invalid date format, you may need to add a zero in front of a single digit&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L159">                shipmentStatusMsg.setText(&quot;Invalid date format. Make sure it is MM-dd-yyyy&quot;);</span>
+<span class="nc" id="L160">                scheduledDate = null;</span>
+<span class="nc" id="L161">                return;</span>
+<span class="fc" id="L162">            }</span>
+
+<span class="pc bpc" id="L164" title="3 of 4 branches missed.">            if (scheduledDate == null &amp;&amp; Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+<span class="nc" id="L165">                return;</span>
+            }
+
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">            if (items.isEmpty()) {</span>
+<span class="nc" id="L169">                Toast.makeText(this, &quot;Add at least one item&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L170">                shipmentStatusMsg.setText(&quot;Add at least one item before scheduling&quot;);</span>
+<span class="nc" id="L171">                return;</span>
+            }
+
+<span class="fc" id="L174">            Log.d(&quot;ITEMS&quot;, items.toString());</span>
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">            Log.d(&quot;DATE&quot;, scheduledDate != null ? scheduledDate.toString() : &quot;null&quot;);</span>
+<span class="fc" id="L176">            Log.d(&quot;ADMIN&quot;, adminIdString);</span>
+<span class="fc" id="L177">            ShipmentRequestMethods.addShipmentRequest(this, adminId, scheduledDate, items, new NetworkCallback&lt;String&gt;() {</span>
+                @Override
+                public void onSuccess(String message) {
+<span class="fc" id="L180">                    shipmentStatusMsg.setText(message);</span>
+                    // notify via WebSocket after successful schedule
+
+<span class="fc" id="L183">                    startActivity(new Intent(shipmentScheduleActivity.this, ShipmentListViewActivity.class));</span>
+<span class="fc" id="L184">                }</span>
+                @Override
+                public void onError(String message) {
+<span class="nc" id="L187">                    shipmentStatusMsg.setText(message);</span>
+<span class="nc" id="L188">                }</span>
+            });
+<span class="fc" id="L190">        });</span>
+
+        // Set onclick for cancel button
+<span class="fc" id="L193">        cancelButton.setOnClickListener(view -&gt;</span>
+<span class="nc" id="L194">                startActivity(new Intent(shipmentScheduleActivity.this, ShipmentListViewActivity.class)));</span>
+
+
+<span class="fc" id="L197">    }</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

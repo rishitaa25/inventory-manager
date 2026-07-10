@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExportController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.mainApplicationClasses</a> &gt; <span class="el_source">ExportController.java</span></div><h1>ExportController.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.mainApplicationClasses;
+
+import org.example.inventory_manager_beta1.DTO.Objects.ShortItem;
+import org.example.inventory_manager_beta1.DTO.Shipments.ShipmentSearchResponse;
+import org.example.inventory_manager_beta1.entities.*;
+import org.example.inventory_manager_beta1.repositories.ChatMessageRepository;
+import org.example.inventory_manager_beta1.services.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping(&quot;/export&quot;)
+<span class="fc" id="L19">public class ExportController {</span>
+
+    @Autowired private InventoryService inventoryService;
+    @Autowired private InventoryChangeService inventoryChangeService;
+    @Autowired private ItemService itemService;
+    @Autowired private ShipmentService shipmentService;
+    @Autowired private EmployeeService employeeService;
+    @Autowired private AdminService adminService;
+    @Autowired private DriverService driverService;
+    @Autowired private ShiftService shiftService;
+    @Autowired private ShippingCompanyService shippingCompanyService;
+    @Autowired private ChatMessageRepository chatMessageRepository;
+
+    private ResponseEntity&lt;String&gt; csvResponse(String filename, String csv) {
+<span class="fc" id="L33">        return ResponseEntity.ok()</span>
+<span class="fc" id="L34">                .header(HttpHeaders.CONTENT_DISPOSITION, &quot;attachment; filename=&quot; + filename)</span>
+<span class="fc" id="L35">                .contentType(MediaType.parseMediaType(&quot;text/csv&quot;))</span>
+<span class="fc" id="L36">                .body(csv);</span>
+    }
+
+    private String safe(Object value) {
+<span class="pc bpc" id="L40" title="1 of 2 branches missed.">        if (value == null) return &quot;&quot;;</span>
+<span class="fc" id="L41">        String text = value.toString();</span>
+<span class="fc" id="L42">        text = text.replace(&quot;\&quot;&quot;, &quot;\&quot;\&quot;&quot;);</span>
+<span class="pc bpc" id="L43" title="3 of 6 branches missed.">        if (text.contains(&quot;,&quot;) || text.contains(&quot;\n&quot;) || text.contains(&quot;\&quot;&quot;)) {</span>
+<span class="nc" id="L44">            return &quot;\&quot;&quot; + text + &quot;\&quot;&quot;;</span>
+        }
+<span class="fc" id="L46">        return text;</span>
+    }
+
+    @GetMapping(value = &quot;/inventory&quot;, produces = &quot;text/csv&quot;)
+    public ResponseEntity&lt;String&gt; exportInventory() {
+<span class="fc" id="L51">        List&lt;Inventory&gt; inventory = inventoryService.findAll();</span>
+
+<span class="fc" id="L53">        StringBuilder csv = new StringBuilder();</span>
+<span class="fc" id="L54">        csv.append(&quot;skuNumber,itemName,itemDescription,amountOfItem\n&quot;);</span>
+
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        for (Inventory item : inventory) {</span>
+<span class="fc" id="L57">            csv.append(safe(item.getSkuNumber())).append(&quot;,&quot;);</span>
+<span class="fc" id="L58">            csv.append(safe(item.getItemName())).append(&quot;,&quot;);</span>
+<span class="fc" id="L59">            csv.append(safe(item.getItemDescription())).append(&quot;,&quot;);</span>
+<span class="fc" id="L60">            csv.append(safe(item.getAmountOfItem())).append(&quot;\n&quot;);</span>
+<span class="fc" id="L61">        }</span>
+
+<span class="fc" id="L63">        return csvResponse(&quot;inventory.csv&quot;, csv.toString());</span>
+    }
+
+    @GetMapping(value = &quot;/inventory-changes&quot;, produces = &quot;text/csv&quot;)
+    public ResponseEntity&lt;String&gt; exportInventoryChanges() {
+<span class="nc" id="L68">        List&lt;InventoryChange&gt; changes = inventoryChangeService.findAll();</span>
+
+<span class="nc" id="L70">        StringBuilder csv = new StringBuilder();</span>
+<span class="nc" id="L71">        csv.append(&quot;changeId,skuNumber,amountOfItem,employeeId\n&quot;);</span>
+
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        for (InventoryChange change : changes) {</span>
+<span class="nc" id="L74">            csv.append(safe(change.getChangeId())).append(&quot;,&quot;);</span>
+<span class="nc" id="L75">            csv.append(safe(change.getSkuNumber())).append(&quot;,&quot;);</span>
+<span class="nc" id="L76">            csv.append(safe(change.getAmountOfItem())).append(&quot;,&quot;);</span>
+<span class="nc" id="L77">            csv.append(safe(change.getEmployeeId())).append(&quot;\n&quot;);</span>
+<span class="nc" id="L78">        }</span>
+
+<span class="nc" id="L80">        return csvResponse(&quot;inventory_changes.csv&quot;, csv.toString());</span>
+    }
+
+    @GetMapping(value = &quot;/items&quot;, produces = &quot;text/csv&quot;)
+    public ResponseEntity&lt;String&gt; exportItems() {
+<span class="nc" id="L85">        List&lt;Item&gt; items = itemService.findAll();</span>
+
+<span class="nc" id="L87">        StringBuilder csv = new StringBuilder();</span>
+<span class="nc" id="L88">        csv.append(&quot;skuId,itemName,description,shippingCompany,shipmentId,storageLocation,quantity,weight,storageType,arrivalDate\n&quot;);</span>
+
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        for (Item item : items) {</span>
+<span class="nc" id="L91">            csv.append(safe(item.getSkuId())).append(&quot;,&quot;);</span>
+<span class="nc" id="L92">            csv.append(safe(item.getItemName())).append(&quot;,&quot;);</span>
+<span class="nc" id="L93">            csv.append(safe(item.getDescription())).append(&quot;,&quot;);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">            csv.append(safe(item.getShippingCompany() != null ? item.getShippingCompany().getShippingCompanyName() : &quot;&quot;)).append(&quot;,&quot;);</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">            csv.append(safe(item.getShipment() != null ? item.getShipment().getShipmentId() : &quot;&quot;)).append(&quot;,&quot;);</span>
+<span class="nc" id="L96">            csv.append(safe(item.getStorageLocation())).append(&quot;,&quot;);</span>
+<span class="nc" id="L97">            csv.append(safe(item.getQuantity())).append(&quot;,&quot;);</span>
+<span class="nc" id="L98">            csv.append(safe(item.getWeight())).append(&quot;,&quot;);</span>
+<span class="nc" id="L99">            csv.append(safe(item.getStorageType())).append(&quot;,&quot;);</span>
+<span class="nc" id="L100">            csv.append(safe(item.getArrivalDate())).append(&quot;\n&quot;);</span>
+<span class="nc" id="L101">        }</span>
+
+<span class="nc" id="L103">        return csvResponse(&quot;items.csv&quot;, csv.toString());</span>
+    }
+
+    @GetMapping(value = &quot;/shipments&quot;, produces = &quot;text/csv&quot;)
+    public ResponseEntity&lt;String&gt; exportShipments() {
+<span class="nc" id="L108">        List&lt;ShipmentSearchResponse&gt; shipments = shipmentService.findAllDTO();</span>
+
+<span class="nc" id="L110">        StringBuilder csv = new StringBuilder();</span>
+<span class="nc" id="L111">        csv.append(&quot;shipmentId,arrivalDate,arrived,offloaded,items,shippingCompanies,drivers,creationAdmin\n&quot;);</span>
+
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        for (ShipmentSearchResponse shipment : shipments) {</span>
+<span class="nc" id="L114">            String itemNames = shipment.getItems().stream()</span>
+<span class="nc" id="L115">                    .map(ShortItem::getItemName)</span>
+<span class="nc" id="L116">                    .collect(Collectors.joining(&quot;; &quot;));</span>
+
+<span class="nc" id="L118">            String shippingCompanies = String.join(&quot;; &quot;, shipment.getShippingCompanies());</span>
+<span class="nc" id="L119">            String drivers = String.join(&quot;; &quot;, shipment.getDrivers());</span>
+
+<span class="nc" id="L121">            csv.append(safe(shipment.getShipmentId())).append(&quot;,&quot;);</span>
+<span class="nc" id="L122">            csv.append(safe(shipment.getArrivalDate())).append(&quot;,&quot;);</span>
+<span class="nc" id="L123">            csv.append(safe(shipment.isArrived())).append(&quot;,&quot;);</span>
+<span class="nc" id="L124">            csv.append(safe(shipment.isOffloaded())).append(&quot;,&quot;);</span>
+<span class="nc" id="L125">            csv.append(safe(itemNames)).append(&quot;,&quot;);</span>
+<span class="nc" id="L126">            csv.append(safe(shippingCompanies)).append(&quot;,&quot;);</span>
+<span class="nc" id="L127">            csv.append(safe(drivers)).append(&quot;,&quot;);</span>
+<span class="nc" id="L128">            csv.append(safe(shipment.getCreationAdmin())).append(&quot;\n&quot;);</span>
+<span class="nc" id="L129">        }</span>
+
+<span class="nc" id="L131">        return csvResponse(&quot;shipments.csv&quot;, csv.toString());</span>
+    }
+
+    @GetMapping(value = &quot;/employees&quot;, produces = &quot;text/csv&quot;)
+    public ResponseEntity&lt;String&gt; exportEmployees() {
+<span class="nc" id="L136">        List&lt;Employee&gt; employees = employeeService.findAll();</span>
+
+<span class="nc" id="L138">        StringBuilder csv = new StringBuilder();</span>
+<span class="nc" id="L139">        csv.append(&quot;employeeId,firstName,lastName,userName,accessLevel,email,phoneNumber\n&quot;);</span>
+
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        for (Employee employee : employees) {</span>
+<span class="nc" id="L142">            csv.append(safe(employee.getEmployeeId())).append(&quot;,&quot;);</span>
+<span class="nc" id="L143">            csv.append(safe(employee.getFirstName())).append(&quot;,&quot;);</span>
+<span class="nc" id="L144">            csv.append(safe(employee.getLastName())).append(&quot;,&quot;);</span>
+<span class="nc" id="L145">            csv.append(safe(employee.getUserName())).append(&quot;,&quot;);</span>
+<span class="nc" id="L146">            csv.append(safe(employee.getAccessLevel())).append(&quot;,&quot;);</span>
+<span class="nc" id="L147">            csv.append(safe(employee.getEmail())).append(&quot;,&quot;);</span>
+<span class="nc" id="L148">            csv.append(safe(employee.getPhoneNumber())).append(&quot;\n&quot;);</span>
+<span class="nc" id="L149">        }</span>
+
+<span class="nc" id="L151">        return csvResponse(&quot;employees.csv&quot;, csv.toString());</span>
+    }
+
+    @GetMapping(value = &quot;/admins&quot;, produces = &quot;text/csv&quot;)
+    public ResponseEntity&lt;String&gt; exportAdmins() {
+<span class="nc" id="L156">        List&lt;Admin&gt; admins = adminService.findAll();</span>
+
+<span class="nc" id="L158">        StringBuilder csv = new StringBuilder();</span>
+<span class="nc" id="L159">        csv.append(&quot;employeeId,firstName,lastName,userName,accessLevel,email,phoneNumber,managementTitle\n&quot;);</span>
+
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        for (Admin admin : admins) {</span>
+<span class="nc" id="L162">            csv.append(safe(admin.getEmployeeId())).append(&quot;,&quot;);</span>
+<span class="nc" id="L163">            csv.append(safe(admin.getFirstName())).append(&quot;,&quot;);</span>
+<span class="nc" id="L164">            csv.append(safe(admin.getLastName())).append(&quot;,&quot;);</span>
+<span class="nc" id="L165">            csv.append(safe(admin.getUserName())).append(&quot;,&quot;);</span>
+<span class="nc" id="L166">            csv.append(safe(admin.getAccessLevel())).append(&quot;,&quot;);</span>
+<span class="nc" id="L167">            csv.append(safe(admin.getEmail())).append(&quot;,&quot;);</span>
+<span class="nc" id="L168">            csv.append(safe(admin.getPhoneNumber())).append(&quot;,&quot;);</span>
+<span class="nc" id="L169">            csv.append(safe(admin.getManagementTitle())).append(&quot;\n&quot;);</span>
+<span class="nc" id="L170">        }</span>
+
+<span class="nc" id="L172">        return csvResponse(&quot;admins.csv&quot;, csv.toString());</span>
+    }
+
+    @GetMapping(value = &quot;/drivers&quot;, produces = &quot;text/csv&quot;)
+    public ResponseEntity&lt;String&gt; exportDrivers() {
+<span class="nc" id="L177">        List&lt;Driver&gt; drivers = driverService.findAll();</span>
+
+<span class="nc" id="L179">        StringBuilder csv = new StringBuilder();</span>
+<span class="nc" id="L180">        csv.append(&quot;employeeId,firstName,lastName,userName,accessLevel,email,phoneNumber\n&quot;);</span>
+
+<span class="nc bnc" id="L182" title="All 2 branches missed.">        for (Driver driver : drivers) {</span>
+<span class="nc" id="L183">            csv.append(safe(driver.getEmployeeId())).append(&quot;,&quot;);</span>
+<span class="nc" id="L184">            csv.append(safe(driver.getFirstName())).append(&quot;,&quot;);</span>
+<span class="nc" id="L185">            csv.append(safe(driver.getLastName())).append(&quot;,&quot;);</span>
+<span class="nc" id="L186">            csv.append(safe(driver.getUserName())).append(&quot;,&quot;);</span>
+<span class="nc" id="L187">            csv.append(safe(driver.getAccessLevel())).append(&quot;,&quot;);</span>
+<span class="nc" id="L188">            csv.append(safe(driver.getEmail())).append(&quot;,&quot;);</span>
+<span class="nc" id="L189">            csv.append(safe(driver.getPhoneNumber())).append(&quot;\n&quot;);</span>
+<span class="nc" id="L190">        }</span>
+
+<span class="nc" id="L192">        return csvResponse(&quot;drivers.csv&quot;, csv.toString());</span>
+    }
+
+    @GetMapping(value = &quot;/shifts&quot;, produces = &quot;text/csv&quot;)
+    public ResponseEntity&lt;String&gt; exportShifts() {
+<span class="nc" id="L197">        List&lt;Shift&gt; shifts = shiftService.findAll();</span>
+
+<span class="nc" id="L199">        StringBuilder csv = new StringBuilder();</span>
+<span class="nc" id="L200">        csv.append(&quot;shiftId,employeeId,employeeUserName,shiftDate,startTime,endTime,duration\n&quot;);</span>
+
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        for (Shift shift : shifts) {</span>
+<span class="nc" id="L203">            Employee employee = shift.getEmployee();</span>
+
+<span class="nc" id="L205">            csv.append(safe(shift.getId())).append(&quot;,&quot;);</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">            csv.append(safe(employee != null ? employee.getEmployeeId() : &quot;&quot;)).append(&quot;,&quot;);</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">            csv.append(safe(employee != null ? employee.getUserName() : &quot;&quot;)).append(&quot;,&quot;);</span>
+<span class="nc" id="L208">            csv.append(safe(shift.getShiftDate())).append(&quot;,&quot;);</span>
+<span class="nc" id="L209">            csv.append(safe(shift.getStartTime())).append(&quot;,&quot;);</span>
+<span class="nc" id="L210">            csv.append(safe(shift.getEndTime())).append(&quot;,&quot;);</span>
+<span class="nc" id="L211">            csv.append(safe(shift.getDuration())).append(&quot;\n&quot;);</span>
+<span class="nc" id="L212">        }</span>
+
+<span class="nc" id="L214">        return csvResponse(&quot;shifts.csv&quot;, csv.toString());</span>
+    }
+
+    @GetMapping(value = &quot;/shipping-companies&quot;, produces = &quot;text/csv&quot;)
+    public ResponseEntity&lt;String&gt; exportShippingCompanies() {
+<span class="fc" id="L219">        List&lt;ShippingCompany&gt; companies = shippingCompanyService.findAll();</span>
+
+<span class="fc" id="L221">        StringBuilder csv = new StringBuilder();</span>
+<span class="fc" id="L222">        csv.append(&quot;shippingCompanyId,shippingCompanyName,shippingCompanyEmail,shippingCompanyPhone\n&quot;);</span>
+
+<span class="fc bfc" id="L224" title="All 2 branches covered.">        for (ShippingCompany company : companies) {</span>
+<span class="fc" id="L225">            csv.append(safe(company.getShippingCompanyId())).append(&quot;,&quot;);</span>
+<span class="fc" id="L226">            csv.append(safe(company.getShippingCompanyName())).append(&quot;,&quot;);</span>
+<span class="fc" id="L227">            csv.append(safe(company.getShippingCompanyEmail())).append(&quot;,&quot;);</span>
+<span class="fc" id="L228">            csv.append(safe(company.getShippingCompanyPhone())).append(&quot;\n&quot;);</span>
+<span class="fc" id="L229">        }</span>
+
+<span class="fc" id="L231">        return csvResponse(&quot;shipping_companies.csv&quot;, csv.toString());</span>
+    }
+
+    @GetMapping(value = &quot;/chat/{room}&quot;, produces = &quot;text/csv&quot;)
+    public ResponseEntity&lt;String&gt; exportChatHistory(@PathVariable String room) {
+<span class="nc" id="L236">        List&lt;ChatMessage&gt; messages = chatMessageRepository.findByRoomOrderByTimestampAsc(room);</span>
+
+<span class="nc" id="L238">        StringBuilder csv = new StringBuilder();</span>
+<span class="nc" id="L239">        csv.append(&quot;id,room,sender,content,timestamp\n&quot;);</span>
+
+<span class="nc bnc" id="L241" title="All 2 branches missed.">        for (ChatMessage message : messages) {</span>
+<span class="nc" id="L242">            csv.append(safe(message.getId())).append(&quot;,&quot;);</span>
+<span class="nc" id="L243">            csv.append(safe(message.getRoom())).append(&quot;,&quot;);</span>
+<span class="nc" id="L244">            csv.append(safe(message.getSender())).append(&quot;,&quot;);</span>
+<span class="nc" id="L245">            csv.append(safe(message.getContent())).append(&quot;,&quot;);</span>
+<span class="nc" id="L246">            csv.append(safe(message.getTimestamp())).append(&quot;\n&quot;);</span>
+<span class="nc" id="L247">        }</span>
+
+<span class="nc" id="L249">        return csvResponse(&quot;chat_&quot; + room + &quot;.csv&quot;, csv.toString());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

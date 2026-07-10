@@ -1,0 +1,15 @@
+body {
+    background: lightyellow;
+}
+
+#username {
+    background-color: lightblue;
+    padding: 20px;
+    font-size: 35px;
+}
+
+#password {
+    background-color: orange;
+    padding: 20px;
+    font-size: 35px;
+}

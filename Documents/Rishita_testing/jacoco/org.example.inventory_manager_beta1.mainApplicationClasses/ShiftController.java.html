@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShiftController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.mainApplicationClasses</a> &gt; <span class="el_source">ShiftController.java</span></div><h1>ShiftController.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.mainApplicationClasses;
+
+import org.example.inventory_manager_beta1.DTO.Employees.Shifts.ShiftRequest;
+import org.example.inventory_manager_beta1.DTO.Employees.Shifts.ShiftUpdateRequest;
+import org.example.inventory_manager_beta1.entities.Shift;
+import org.example.inventory_manager_beta1.services.ShiftService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+
+/**
+ * A controller class containing all the different HTTP mappings for Shift related methods
+ */
+@RestController
+@RequestMapping(&quot;/shift&quot;)
+<span class="fc" id="L18">public class ShiftController {</span>
+    /**
+     * The auto-injected ShiftService class for handling Shift related logic
+     */
+    @Autowired
+    private ShiftService shiftService;
+
+    /**
+     * CREATE: A controller method for handling Shift creation
+     * @param newShift
+     *  The DTO containing the Shift information in JSON format
+     * @return
+     *  A message confirming if the Shift creation was successful
+     */
+    @PostMapping(&quot;/create&quot;)
+<span class="nc" id="L33">    public String createShift(@RequestBody ShiftRequest newShift) {return shiftService.createShift(newShift).getMessage();}</span>
+
+    /**
+     * READ: A controller method for handling searching for all Shifts on a given day
+     * @param shiftDate
+     *  The search date
+     * @return
+     *  A List of Shifts that are scheduled on the search date
+     */
+    @GetMapping(&quot;/find-by/shift-date/{shiftDate}&quot;)
+<span class="nc" id="L43">    public List&lt;Shift&gt; getShiftsViaDate(@PathVariable(&quot;shiftDate&quot;) LocalDate shiftDate) {return shiftService.findByShiftDate(shiftDate);}</span>
+
+    /**
+     * READ: A controller method for handling searching for all Shifts with a specific duration
+     * @param duration
+     *  The duration of the Shift
+     * @return
+     *  A List of Shifts that have a matching duration
+     */
+    @GetMapping(&quot;/find-by/duration/{duration}&quot;)
+<span class="nc" id="L53">    public List&lt;Shift&gt; getShiftsViaDuration(@PathVariable(&quot;duration&quot;) Double duration) {return shiftService.findByDuration(duration);}</span>
+
+    /**
+     * READ: A controller method for handling searching for date specific Shifts with a specific duration
+     * @param duration
+     *  The duration of the Shift
+     * @param shiftDate
+     *  The assigned date of the Shift
+     * @return
+     *  A List of Shifts that have a matching assigned date and duration
+     */
+    @GetMapping(&quot;/find-by/duration/{duration}/and-date/{shiftDate}&quot;)
+<span class="nc" id="L65">    public List&lt;Shift&gt; getShiftsViaDurationAndDate(@PathVariable(&quot;duration&quot;) Double duration, @PathVariable(&quot;shiftDate&quot;) LocalDate shiftDate) {return shiftService.findByDurationAndDate(duration, shiftDate);}</span>
+
+    /**
+     * READ: A controller method for handling searching for all Shifts with a specific start time
+     * @param startTime
+     *  The start time of the Shift
+     * @return
+     *  A List of all Shifts that have a matching start time
+     */
+    @GetMapping(&quot;/find-by/start-time/{startTime}&quot;)
+<span class="nc" id="L75">    public List&lt;Shift&gt; getShiftsViaStartTime(@PathVariable(&quot;startTime&quot;) LocalTime startTime) {return shiftService.findByStartTime(startTime);}</span>
+
+    /**
+     * READ: A controller method for handling searching for date specific Shifts with a specific start time
+     * @param startTime
+     *  The start time of the Shift
+     * @param shiftDate
+     *  The assigned date of the Shift
+     * @return
+     *  A List of all Shifts that have a matching assigned date and start time
+     */
+    @GetMapping(&quot;/find-by/start-time{startTime}/and-date/{shiftDate}&quot;)
+<span class="nc" id="L87">    public List&lt;Shift&gt; getShiftViaStartTimeAndDate(@PathVariable(&quot;startTime&quot;) LocalTime startTime, @PathVariable(&quot;shiftDate&quot;) LocalDate shiftDate) {return shiftService.findByStartTimeAndDate(startTime, shiftDate);}</span>
+
+    /**
+     * READ: A controller method for handling searching for all Shifts with a specific end time
+     * @param endTime
+     *  The end time of the Shift
+     * @return
+     *  A List of all Shifts that have a matching end time
+     */
+    @GetMapping(&quot;/find-by/end-time{endTime}&quot;)
+<span class="nc" id="L97">    public List&lt;Shift&gt; getShiftViaEndTime(@PathVariable(&quot;endTime&quot;) LocalTime endTime) {return shiftService.findByEndTime(endTime);}</span>
+
+    /**
+     * READ: A controller method for handling searching for date specific Shifts with a specific end time
+     * @param endTime
+     *  The end time of the shift
+     * @param shiftDate
+     *  The assigned date of the Shift
+     * @return
+     *  A List of all Shifts that have a matching assigned date and end time
+     */
+    @GetMapping(&quot;/find-by/end-time/{endTime}/and-date/{shiftDate}&quot;)
+<span class="nc" id="L109">    public List&lt;Shift&gt; getShiftViaEndTimeAndDate(@PathVariable(&quot;endTime&quot;) LocalTime endTime, @PathVariable(&quot;shiftDate&quot;) LocalDate shiftDate) {return shiftService.findByEndTimeAndDate(endTime, shiftDate);}</span>
+
+    /**
+     * READ: A controller method for handling searching for all Shifts within a date range
+     * @param startingDay
+     *  The start date of the range
+     * @param endingDay
+     *  The end date of the range
+     * @return
+     *  A list of Shifts that fall within the given date range
+     */
+    @GetMapping(&quot;/find-by/range-from/{startingDay}/to/{endingDay}&quot;)
+<span class="nc" id="L121">    public List&lt;Shift&gt; getShiftsViaRange(@PathVariable(&quot;startingDay&quot;) LocalDate startingDay, @PathVariable(&quot;endingDay&quot;) LocalDate endingDay) {return shiftService.findByShiftDateBetween(startingDay, endingDay);}</span>
+
+    /**
+     * READ: A controller method for handling searching for all Shifts
+     * @return
+     *  A list containing all current Shifts
+     */
+    @GetMapping(&quot;/find/all&quot;)
+<span class="nc" id="L129">    public List&lt;Shift&gt; getAllShifts() {return shiftService.findAll();}</span>
+
+    /**
+     * UPDATE: A controller method for handling updating an existing Shift
+     * @param shiftUpdateRequest
+     *  The DTO containing the updated Shift information in JSON format
+     * @return
+     *  A message confirming a successful Shift update
+     */
+    @PutMapping(&quot;/update&quot;)
+<span class="nc" id="L139">    public String updateShift(@RequestBody ShiftUpdateRequest shiftUpdateRequest) {return shiftService.updateShift(shiftUpdateRequest).getMessage();}</span>
+
+    /**
+     * TRANSFER: A controller method for handling transferring a Shift to a different Employee
+     * @param shiftId
+     *  The ID of the Shift to be transferred
+     * @param newEmployeeId
+     *  The ID of the Employee to transfer the Shift to
+     * @return
+     *  True if the transfer was completed successfully
+     */
+    @PatchMapping(&quot;/transfer/{shiftId}/to-employee/{newEmployeeId}&quot;)
+    public Boolean transferShift(@PathVariable(&quot;shiftId&quot;) Integer shiftId, @PathVariable(&quot;newEmployeeId&quot;) Integer newEmployeeId) {
+<span class="nc" id="L152">        shiftService.transferShift(shiftId, newEmployeeId);</span>
+<span class="nc" id="L153">        return true;</span>
+    }
+
+    /**
+     * DELETE: A controller method for handling specific Shift deletion
+     * @param employeeId
+     *  The ID of the Employee the shift belongs to
+     * @param shiftDay
+     *  The date the shift is scheduled
+     * @return
+     *  True if completed
+     */
+    @DeleteMapping(&quot;/delete/{shiftDay}/from-employee/{employeeId}&quot;)
+    public Boolean deleteShift(@PathVariable(&quot;shiftDay&quot;) LocalDate shiftDay, @PathVariable(&quot;employeeId&quot;) Integer employeeId) {
+<span class="nc" id="L167">        shiftService.deleteShift(employeeId, shiftDay);</span>
+<span class="nc" id="L168">        return true;</span>
+    }
+
+    /**
+     * DELETE: A controller method for handling removing all Shifts
+     * @return
+     *  True if completed
+     */
+    @DeleteMapping(&quot;/delete-all&quot;)
+    public Boolean deleteAllShifts() {
+<span class="nc" id="L178">        shiftService.deleteAllShifts();</span>
+<span class="nc" id="L179">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

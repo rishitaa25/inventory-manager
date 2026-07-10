@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.services</a> &gt; <span class="el_source">AdminService.java</span></div><h1>AdminService.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.services;
+
+import org.example.inventory_manager_beta1.Configuration.SessionToken.JwtUtil;
+import org.example.inventory_manager_beta1.DTO.Employees.Login.*;
+import org.example.inventory_manager_beta1.DTO.Employees.SignUp.*;
+import org.example.inventory_manager_beta1.DTO.Employees.Update.*;
+import org.example.inventory_manager_beta1.DataEnums.AccessLevel;
+import org.example.inventory_manager_beta1.DataEnums.ManagementTitle;
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.AdminNotFoundException;
+import org.example.inventory_manager_beta1.entities.Admin;
+import org.example.inventory_manager_beta1.entities.Session;
+import org.example.inventory_manager_beta1.repositories.AdminRepository;
+import org.example.inventory_manager_beta1.repositories.DriverRepository;
+import org.example.inventory_manager_beta1.repositories.EmployeeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * A robust service class to handle all the different logic and search methods relating
+ * to the Admin class. It is complete with all the AdminRepository search methods
+ * defined, and it handles every Admin related logic method with included custom error handling
+ */
+@Service
+public class AdminService {
+    /**
+     * The auto-injected EmployeeRepository for handling custom Employee searches
+     */
+    @Autowired
+    private final EmployeeRepository employeeRepository;
+    /**
+     * The auto-injected DriverRepository for handling custom Driver searches
+     */
+    @Autowired
+    private final DriverRepository driverRepository;
+    /**
+     * The auto-injected AdminRepository for handling custom Admin searches
+     */
+    @Autowired
+    private final AdminRepository adminRepository;
+
+    /**
+     *
+     */
+    @Autowired
+    private final SessionService sessionService;
+
+    /**
+     * INIT: Used for initializing the repositories for custom database checks and searches
+     * @param employeeRepository
+     *  The repository containing the custom Employee search methods
+     * @param driverRepository
+     * The repository containing the custom Driver search methods
+     * @param adminRepository
+     * The repository containing the custom Admin search methods
+     */
+<span class="fc" id="L59">    public AdminService(EmployeeRepository employeeRepository, DriverRepository driverRepository, AdminRepository adminRepository, SessionService sessionService) {</span>
+<span class="fc" id="L60">        this.employeeRepository = employeeRepository;</span>
+<span class="fc" id="L61">        this.driverRepository = driverRepository;</span>
+<span class="fc" id="L62">        this.adminRepository = adminRepository;</span>
+<span class="fc" id="L63">        this.sessionService = sessionService;</span>
+<span class="fc" id="L64">    }</span>
+
+    /**
+     * An auto-injected Argon2 PasswordEncoder for handling password hashing
+     */
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    /*==================================SEARCH METHODS==================================*/
+
+    /**
+     * SEARCH: A search method for finding an Admin using their identification number
+     * @param id
+     *  The identification number of the Admin being searched for
+     * @return
+     *  The Admin with the matching ID number if they exist
+     * @throws AdminNotFoundException
+     *  Custom NotFound exception if the Admin ID search returns null
+     */
+    public Admin findById(Integer id) {
+<span class="nc" id="L87">        return adminRepository.findById(id)</span>
+<span class="nc" id="L88">            .orElseThrow(() -&gt; new AdminNotFoundException(&quot;Admin with EmployeeID: &quot; + id + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding an Admin using their Social Security Number
+     * @param ssn
+     *  The Social Security Number of the Admin being searched for
+     * @return
+     *  The Admin with the matching SSN if they exist
+     * @throws AdminNotFoundException
+     *  Custom NotFound exception if the Admin SSN search returns null
+     */
+    public Admin findBySSN(String ssn){
+<span class="nc" id="L101">        return adminRepository.findBySsn(ssn)</span>
+<span class="nc" id="L102">                .orElseThrow(() -&gt; new AdminNotFoundException(&quot;Admin with SSN: &quot; + ssn + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding Admin(s) using their first name
+     * @param firstName
+     *  The first name of the Admin(s) being searched for
+     * @return
+     *  A list of all Admins with a matching first name
+     */
+<span class="nc" id="L112">    public List&lt;Admin&gt; findByFirstName(String firstName) {return adminRepository.findByFirstName(firstName);}</span>
+
+    /**
+     * SEARCH: A search method for finding Admin(s) using their last name
+     * @param lastName
+     *  The last name of the Admin(s) being searched for
+     * @return
+     *  A list of all Admins with a matching last name
+     */
+<span class="nc" id="L121">    public List&lt;Admin&gt; findByLastName(String lastName) {return adminRepository.findByLastName(lastName);}</span>
+
+    /**
+     * SEARCH: A search method for finding an Admin using their username
+     * @param userName
+     *  The username of the Admin being searched for
+     * @return
+     *  The Admin with the matching username if they exist
+     * @throws AdminNotFoundException
+     *  Custom NotFound exception if the Admin username search returns null
+     */
+    public Admin findByUserName(String userName) {
+<span class="nc" id="L133">        return adminRepository.findByUserName(userName)</span>
+<span class="nc" id="L134">                .orElseThrow(() -&gt; new AdminNotFoundException(&quot;Admin with username: &quot; + userName + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding an Admin using their email address
+     * @param email
+     *  The email of the Admin being searched for
+     * @return
+     *  The Admin with the matching email if they exist
+     * @throws AdminNotFoundException
+     *  Custom NotFound exception if the Admin email search returns null
+     */
+    public Admin findByEmail(String email) {
+<span class="nc" id="L147">        return adminRepository.findByEmail(email)</span>
+<span class="nc" id="L148">                .orElseThrow(() -&gt; new AdminNotFoundException(&quot;Admin with email: &quot; + email + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding an Admin using their phone number
+     * @param phoneNumber
+     *  The phone number of the Admin being searched for
+     * @return
+     *  The Admin with the matching phone number if they exist
+     * @throws AdminNotFoundException
+     *  Custom NotFound exception if the Admin phone number search returns null
+     */
+    public Admin findByPhoneNumber(String phoneNumber) {
+<span class="nc" id="L161">        return adminRepository.findByPhoneNumber(phoneNumber)</span>
+<span class="nc" id="L162">                .orElseThrow(() -&gt; new AdminNotFoundException(&quot;Admin with phone number: &quot; + phoneNumber + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding Admin(s) using their access level
+     * @param accessLevel
+     *  The access level of the Admin(s) being searched for
+     * @return
+     *  A list of all Admins with a matching access level
+     */
+<span class="nc" id="L172">    public List&lt;Admin&gt; findByAccessLevel(AccessLevel accessLevel) {return adminRepository.findByAccessLevel(accessLevel);}</span>
+
+    /**
+     * SEARCH: A search method for finding Admin(s) using their management title
+     * @param managementTitle
+     *  The management title of the Admin(s) being searched for
+     * @return
+     *  A list of all Admins with a matching management title
+     */
+<span class="nc" id="L181">    public List&lt;Admin&gt; findByManagementTitle(ManagementTitle managementTitle) {return adminRepository.findByManagementTitle(managementTitle);}</span>
+
+    /**
+     * SEARCH: A search method for finding all Admins in the database
+     * @return
+     *  A list of all existing Admins in the database
+     */
+<span class="fc" id="L188">    public List&lt;Admin&gt; findAll(){return adminRepository.findAll();}</span>
+
+    /*==================================LOGIC METHODS==================================*/
+
+    /**
+     * UPDATE: A logic method that saves an Admin to the database
+     * @param admin
+     *  The Admin being saved
+     */
+<span class="fc" id="L197">    public void saveAdmin(Admin admin) {adminRepository.save(admin);}</span>
+
+    /**
+     * CREATE: A logic method that creates a new Admin object, automatically
+     * hashes their password using Argon2, assigns an access level, and adds it
+     * to the database
+     * @param adminSignUp
+     *  The DTO containing all the Admin's information
+     * @return
+     *  A DTO containing the new Admin's ID, first name, and access level
+     */
+    public SignUpResponse registerAdmin(SignUpRequest adminSignUp){
+<span class="fc" id="L209">        Admin newAdmin = new Admin(adminSignUp.getSsn(),</span>
+<span class="fc" id="L210">                                   adminSignUp.getFirstName(),</span>
+<span class="fc" id="L211">                                   adminSignUp.getLastName(),</span>
+<span class="fc" id="L212">                                   adminSignUp.getUserName(),</span>
+<span class="fc" id="L213">                                   adminSignUp.getEmail(),</span>
+<span class="fc" id="L214">                                   adminSignUp.getPhoneNumber(),</span>
+<span class="fc" id="L215">                                   adminSignUp.getManagementTitle());</span>
+<span class="fc" id="L216">        newAdmin.setPassword(passwordEncoder.encode(adminSignUp.getPassword())); //Backend password hashing</span>
+        //Check to make sure the very first person added to the system
+        //has access to every function
+<span class="pc bpc" id="L219" title="2 of 6 branches missed.">        if (employeeRepository.count() == 0 &amp;&amp; driverRepository.count() == 0 &amp;&amp; adminRepository.count() == 0) {</span>
+<span class="fc" id="L220">            newAdmin.setAccessLevel(AccessLevel.GENERAL_MANAGER);</span>
+        }
+        else {
+<span class="fc" id="L223">            newAdmin.setAccessLevel(AccessLevel.ADMIN);</span>
+        }
+<span class="fc" id="L225">        saveAdmin(newAdmin); //Save new Admin to database</span>
+<span class="fc" id="L226">        return new SignUpResponse(newAdmin.getEmployeeId(), newAdmin.getFirstName(), newAdmin.getUserName(), newAdmin.getAccessLevel());</span>
+    }
+
+    /**
+     * UPDATE: A logic method that updates an existing Admin's information
+     * @param adminUpdateRequest
+     *  The DTO containing the new information for the Admin
+     * @return
+     *  A DTO containing the updated Admin's ID and username
+     */
+    public UpdateEmployeeResponse updateAdmin(UpdateEmployeeRequest adminUpdateRequest) {
+<span class="nc" id="L237">        Admin updatedAdmin = findById(adminUpdateRequest.getEmployeeId());</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">        if (adminUpdateRequest.getFirstName() != null)</span>
+<span class="nc" id="L239">            updatedAdmin.setFirstName(adminUpdateRequest.getFirstName());</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        if (adminUpdateRequest.getLastName() != null)</span>
+<span class="nc" id="L241">            updatedAdmin.setLastName(adminUpdateRequest.getLastName());</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">        if (adminUpdateRequest.getUserName() != null)</span>
+<span class="nc" id="L243">            updatedAdmin.setUserName(adminUpdateRequest.getUserName());</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        if (adminUpdateRequest.getEmail() != null)</span>
+<span class="nc" id="L245">            updatedAdmin.setEmail(adminUpdateRequest.getEmail());</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">        if (adminUpdateRequest.getPhoneNumber() != null)</span>
+<span class="nc" id="L247">            updatedAdmin.setPhoneNumber(adminUpdateRequest.getPhoneNumber());</span>
+<span class="nc bnc" id="L248" title="All 4 branches missed.">        if (adminUpdateRequest.getPassword() != null &amp;&amp; !adminUpdateRequest.getPassword().isBlank()) {</span>
+            //updatedAdmin.setPassword(passwordEncoder.encode(updatedAdmin.getPassword()));
+<span class="nc" id="L250">            updatedAdmin.setPassword(passwordEncoder.encode(adminUpdateRequest.getPassword()));</span>
+        }
+<span class="nc" id="L252">        saveAdmin(updatedAdmin);</span>
+<span class="nc" id="L253">        return new UpdateEmployeeResponse(adminUpdateRequest.getEmployeeId(), adminUpdateRequest.getUserName());</span>
+    }
+
+    /**
+     * DELETE: A logic method that deletes an Admin from the database using their
+     * identification number
+     * @param adminId
+     *  The identification number of the Admin being deleted
+     */
+    public void deleteAdmin(Integer adminId){
+        //Validation check
+<span class="nc" id="L264">        findById(adminId);</span>
+<span class="nc" id="L265">        adminRepository.deleteById(adminId);</span>
+<span class="nc" id="L266">    }</span>
+
+    /**
+     * DELETE: A logic method that deletes all Admins from the database
+     */
+<span class="nc" id="L271">    public void deleteAllAdmin() {adminRepository.deleteAll();}</span>
+
+    /**
+     * VERIFY: A logic method to verify if the incoming username and password match the
+     * username and password stored for the Admin
+     * @param loginAttempt
+     *  The DTO containing the username and password
+     * @return
+     *  A DTO containing a message regarding the status of the login
+     */
+    public LoginResponse adminLogin(LoginRequest loginAttempt) {
+
+<span class="fc" id="L283">        Optional&lt;Admin&gt; adminOpt = adminRepository.findByUserName(loginAttempt.getUserName());</span>
+
+<span class="fc bfc" id="L285" title="All 2 branches covered.">        if (adminOpt.isEmpty()) {</span>
+<span class="fc" id="L286">            return new LoginResponse(&quot;User not found&quot;, null, null, null, null, null);</span>
+        }
+
+<span class="fc" id="L289">        Admin admin = adminOpt.get();</span>
+
+<span class="fc bfc" id="L291" title="All 2 branches covered.">        if (!passwordEncoder.matches(loginAttempt.getPassword(), admin.getPassword())) {</span>
+<span class="fc" id="L292">            return new LoginResponse(&quot;Invalid password&quot;, null, null, null, null, null);</span>
+        }
+
+<span class="fc" id="L295">        Session session = sessionService.createSession(</span>
+<span class="fc" id="L296">                admin.getEmployeeId(),</span>
+<span class="fc" id="L297">                admin.getAccessLevel(),</span>
+<span class="fc" id="L298">                admin.getUserName()</span>
+        );
+
+<span class="fc" id="L301">        String token = jwtUtil.generateToken(session.getSessionId());</span>
+
+<span class="fc" id="L303">        return new LoginResponse(</span>
+                &quot;Login successful&quot;,
+<span class="fc" id="L305">                admin.getEmployeeId(),</span>
+<span class="fc" id="L306">                admin.getFirstName(),</span>
+<span class="fc" id="L307">                admin.getLastName(),</span>
+<span class="fc" id="L308">                admin.getAccessLevel().name(),</span>
+                token
+        );
+
+    }
+
+    /**
+     *
+     * @param authHeader
+     * @return
+     */
+    public String adminLogout(String authHeader) {
+<span class="pc bpc" id="L320" title="2 of 4 branches missed.">        if (authHeader == null || !authHeader.startsWith(&quot;Bearer &quot;)) {</span>
+<span class="nc" id="L321">            return &quot;No active session to log out of.&quot;;</span>
+        }
+
+<span class="fc" id="L324">        String token = authHeader.substring(7);</span>
+<span class="fc" id="L325">        String sessionId = jwtUtil.getSessionId(token);</span>
+<span class="fc" id="L326">        sessionService.closeSession(sessionId);</span>
+<span class="fc" id="L327">        return &quot;Logged out successfully.&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

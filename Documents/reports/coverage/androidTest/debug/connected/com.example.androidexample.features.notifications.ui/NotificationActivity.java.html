@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificationActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.notifications.ui</a> &gt; <span class="el_source">NotificationActivity.java</span></div><h1>NotificationActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.notifications.ui;
+
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+import com.example.androidexample.R;
+
+
+/**
+ * this page will show a history of notifications and depending on the type, you can filter which you look at
+ */
+<span class="nc" id="L26">public class NotificationActivity extends AppCompatActivity {</span>
+
+    private TextView notMsg;
+    private static final String TAG = &quot;NotiicationActivity&quot;;
+    private ImageView profile;
+    private ImageView menu;
+   // private ImageView test;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L37">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L38">        setContentView(R.layout.activity_notifications);</span>
+
+
+        /* initialize UI elements */
+<span class="nc" id="L42">        notMsg = findViewById(R.id.notification_banner);</span>
+<span class="nc" id="L43">        profile = findViewById(R.id.profile_icon);</span>
+<span class="nc" id="L44">        menu = findViewById(R.id.menu_icon);</span>
+        //test = findViewById(R.id.shipment);
+
+<span class="nc" id="L47">        notMsg.setText(&quot;&quot;);</span>
+<span class="nc" id="L48">        notMsg.setBackgroundResource(0);</span>
+
+//        test.setOnClickListener(view -&gt; {
+//
+//            String fakeMessage = &quot;Mock TEST: Shipment #123 created&quot;;
+//
+//            Intent intent = new Intent(&quot;WebSocketMessageReceived&quot;);
+//            intent.putExtra(&quot;message&quot;, fakeMessage);
+//
+//            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+//
+//        });
+
+
+//        menu.setOnClickListener(view -&gt; {
+//            Log.d(TAG, &quot;CONNECT button clicked&quot;);
+//            Intent intent = new Intent(this, NotificationWebsocketService.class);
+//            intent.setAction(&quot;CONNECT&quot;);
+//            intent.putExtra(&quot;key&quot;, SessionManager.getUsername());
+//            intent.putExtra(&quot;url&quot;, &quot;ws://coms-3090-013.class.las.iastate.edu:8080/shipments/&quot; + SessionManager.getUsername());
+//            //intent.putExtra(&quot;url&quot;, &quot;http://10.0.2.2:8080/&quot; + SessionManager.getUsername());
+//            startService(intent);
+//        });
+
+
+<span class="nc" id="L73">        BannerHelper.setupBanner(this, profile, menu);</span>
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+<span class="nc" id="L76">            NotificationChannel channel = new NotificationChannel(</span>
+                    &quot;shipment_channel&quot;,
+                    &quot;Shipment Notifications&quot;,
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+
+<span class="nc" id="L82">            NotificationManager manager = getSystemService(NotificationManager.class);</span>
+<span class="nc" id="L83">            manager.createNotificationChannel(channel);</span>
+        }
+
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.TIRAMISU) {</span>
+<span class="nc" id="L87">            requestPermissions(</span>
+                    new String[]{android.Manifest.permission.POST_NOTIFICATIONS},
+                    1001
+            );
+        }
+
+<span class="nc" id="L93">    }</span>
+
+
+    // For receiving notifications
+<span class="nc" id="L97">    private BroadcastReceiver messageReceiver = new BroadcastReceiver() {</span>
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+<span class="nc" id="L101">            String message = intent.getStringExtra(&quot;message&quot;);</span>
+
+<span class="nc" id="L103">            runOnUiThread(() -&gt; {</span>
+<span class="nc" id="L104">                String str = intent.getStringExtra(&quot;test&quot;);</span>
+<span class="nc" id="L105">                notMsg.setText(message);</span>
+<span class="nc" id="L106">                notMsg.setBackgroundResource(R.drawable.notification_banner);</span>
+<span class="nc" id="L107">                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();</span>
+//                new Handler().postDelayed(() -&gt; {
+//                    notMsg.setText(str);
+//                    notMsg.setBackgroundResource(0);
+//                }, 2000);
+
+<span class="nc" id="L113">            });</span>
+<span class="nc" id="L114">        }</span>
+    };
+
+    @Override
+    protected void onStart() {
+<span class="nc" id="L119">        super.onStart();</span>
+<span class="nc" id="L120">        Log.d(TAG, &quot;onStart - registering receiver&quot;);</span>
+<span class="nc" id="L121">        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,</span>
+                new IntentFilter(&quot;WebSocketMessageReceived&quot;));
+<span class="nc" id="L123">    }</span>
+
+    @Override
+    protected void onStop() {
+<span class="nc" id="L127">        super.onStop();</span>
+<span class="nc" id="L128">        Log.d(TAG, &quot;onStop - unregistering receiver&quot;);</span>
+<span class="nc" id="L129">        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);</span>
+<span class="nc" id="L130">    }</span>
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

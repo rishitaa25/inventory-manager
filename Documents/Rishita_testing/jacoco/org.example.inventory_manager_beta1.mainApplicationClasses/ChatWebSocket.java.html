@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChatWebSocket.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.mainApplicationClasses</a> &gt; <span class="el_source">ChatWebSocket.java</span></div><h1>ChatWebSocket.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.mainApplicationClasses;
+
+import jakarta.websocket.*;
+import jakarta.websocket.server.PathParam;
+import jakarta.websocket.server.ServerEndpoint;
+import org.example.inventory_manager_beta1.entities.ChatMessage;
+import org.example.inventory_manager_beta1.repositories.ChatMessageRepository;
+import org.example.inventory_manager_beta1.entities.GroupChat;
+import org.example.inventory_manager_beta1.repositories.GroupChatRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.CopyOnWriteArraySet;
+
+/**
+ * WebSocket Server for Group Chat.
+ * URL Pattern- ws://localhost:8080/chat/Inventory/John
+ */
+@ServerEndpoint(&quot;/chat/{room}/{username}&quot;)
+@Component
+<span class="fc" id="L25">public class ChatWebSocket {</span>
+
+    private static GroupChatRepository groupRepo;
+
+    @Autowired
+<span class="fc" id="L30">    public void setGroupChatRepository(GroupChatRepository repo) {ChatWebSocket.groupRepo = repo;}</span>
+
+    // Manage sessions by room: Map&lt;RoomName, Set&lt;Sessions&gt;&gt;
+<span class="fc" id="L33">    private static Map&lt;String, CopyOnWriteArraySet&lt;Session&gt;&gt; roomSessions = new Hashtable&lt;&gt;();</span>
+    /**
+     * A Logger variable for writing to the server console
+     */
+<span class="fc" id="L37">    private final Logger logger = LoggerFactory.getLogger(ChatWebSocket.class);</span>
+    /**
+     * A static ChatMessageRepository variable because WebSockets are not Spring-managed beans by default
+     */
+    // Static reference to repository because WebSockets are not Spring-managed beans by default
+    private static ChatMessageRepository chatRepo;
+
+    /**
+     * A logic method that initialized the ChatMessageRepository variable
+     * @param repo
+     */
+    @Autowired
+    public void setChatMessageRepository(ChatMessageRepository repo) {
+<span class="fc" id="L50">        ChatWebSocket.chatRepo = repo;</span>
+<span class="fc" id="L51">    }</span>
+
+    /**
+     * A logic method for what to do when a user opens a WebSocket connection
+     * @param session
+     *  The WebSocket session created when the connection is opened
+     * @param room
+     *  The name of the chat room
+     * @param username
+     *  The username of the person who joined
+     */
+    @OnOpen
+    public void onOpen(Session session,
+                       @PathParam(&quot;room&quot;) String room,
+                       @PathParam(&quot;username&quot;) String username) {
+
+<span class="nc" id="L67">        logger.info(&quot;User &quot; + username + &quot; trying to join room: &quot; + room);</span>
+
+        // Check if this room is a restricted group chat
+<span class="nc" id="L70">        GroupChat group = groupRepo.findByRoomName(room).orElse(null);</span>
+
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (group != null) {</span>
+<span class="nc" id="L73">            boolean isMember = group.getMembers().stream()</span>
+<span class="nc" id="L74">                    .anyMatch(emp -&gt; emp.getUserName().equals(username));</span>
+
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (!isMember) {</span>
+                try {
+<span class="nc" id="L78">                    session.getBasicRemote().sendText(&quot;ACCESS DENIED&quot;);</span>
+<span class="nc" id="L79">                    session.close();</span>
+<span class="nc" id="L80">                } catch (IOException e) {</span>
+<span class="nc" id="L81">                    logger.error(&quot;Error closing session: &quot; + e.getMessage());</span>
+<span class="nc" id="L82">                }</span>
+<span class="nc" id="L83">                return;</span>
+            }
+        }
+
+        // Allow join (either public OR valid member)
+<span class="nc" id="L88">        roomSessions.computeIfAbsent(room, k -&gt; new CopyOnWriteArraySet&lt;&gt;()).add(session);</span>
+<span class="nc" id="L89">        broadcastToRoom(room, &quot;SYSTEM: &quot; + username + &quot; has joined the chat.&quot;);</span>
+<span class="nc" id="L90">    }</span>
+
+    /**
+     * A logic method for what to do when a user sends a message in the chat room
+     * @param session
+     *  The WebSocket session the user is currently in
+     * @param message
+     *  The message the user sent
+     * @param room
+     *  The name of the chat room
+     * @param username
+     *  The username of the person who sent the message
+     */
+    @OnMessage
+    public void onMessage(Session session, String message, @PathParam(&quot;room&quot;) String room, @PathParam(&quot;username&quot;) String username) {
+<span class="nc" id="L105">        logger.info(&quot;Message in &quot; + room + &quot; from &quot; + username + &quot;: &quot; + message);</span>
+
+        // Save to Database
+<span class="nc" id="L108">        ChatMessage msgEntity = new ChatMessage(username, room, message);</span>
+<span class="nc" id="L109">        chatRepo.save(msgEntity);</span>
+
+        // Broadcast to only the group
+<span class="nc" id="L112">        broadcastToRoom(room, username + &quot;: &quot; + message);</span>
+<span class="nc" id="L113">    }</span>
+
+    /**
+     * A logic method for what to do when a user closes the WebSocket connection
+     * @param session
+     *  The WebSocket session that was being used
+     * @param room
+     *  The name of the chat room
+     * @param username
+     *  The username of the person who disconnected
+     */
+    @OnClose
+    public void onClose(Session session, @PathParam(&quot;room&quot;) String room, @PathParam(&quot;username&quot;) String username) {
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (roomSessions.containsKey(room)) {</span>
+<span class="nc" id="L127">            roomSessions.get(room).remove(session);</span>
+        }
+<span class="nc" id="L129">        broadcastToRoom(room, &quot;SYSTEM: &quot; + username + &quot; has left.&quot;);</span>
+<span class="nc" id="L130">    }</span>
+
+    /**
+     * Broadcasts a notification to all connected users in a room
+     * @param room
+     *  The name of the chat room
+     * @param message
+     *  The message being broadcasted
+     */
+    private void broadcastToRoom(String room, String message) {
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        if (roomSessions.containsKey(room)) {</span>
+<span class="nc" id="L141">            roomSessions.get(room).forEach(session -&gt; {</span>
+                try {
+<span class="nc" id="L143">                    session.getBasicRemote().sendText(message);</span>
+<span class="nc" id="L144">                } catch (IOException e) {</span>
+<span class="nc" id="L145">                    logger.error(&quot;Broadcast error: &quot; + e.getMessage());</span>
+<span class="nc" id="L146">                }</span>
+<span class="nc" id="L147">            });</span>
+        }
+<span class="nc" id="L149">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

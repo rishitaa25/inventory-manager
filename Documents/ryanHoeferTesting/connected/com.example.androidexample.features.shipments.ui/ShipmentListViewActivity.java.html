@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShipmentListViewActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.shipments.ui</a> &gt; <span class="el_source">ShipmentListViewActivity.java</span></div><h1>ShipmentListViewActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.shipments.ui;
+
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+import com.example.androidexample.R;
+import com.example.androidexample.features.NetworkCallback;
+import com.example.androidexample.features.shipments.data.ShipmentRepository;
+import com.example.androidexample.features.shipments.ui.adapters.ShipmentAdapter;
+import com.example.androidexample.features.shipments.model.ShipmentObject;
+import com.example.androidexample.features.shipments.services.ShipmentRequestMethods;
+import com.example.androidexample.features.user.data.SessionManager;
+import com.example.androidexample.features.user.enums.AccessLevel;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="fc" id="L29">public class ShipmentListViewActivity extends AppCompatActivity {</span>
+
+    // UI components
+    private ImageView searchArrow, profile, addButton, menu, downloadShipments;
+    private TextView shipmentStatusMsg, addText;
+    private EditText shipmentID;
+    private List&lt;ShipmentObject&gt; shipmentList;
+    private ListView shipmentListView;
+    private ShipmentAdapter adapter;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L42">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L43">        setContentView(R.layout.activity_shipments_view);</span>
+
+        // Initialize UI components
+<span class="fc" id="L46">        shipmentStatusMsg = findViewById(R.id.shipment_status_msg);</span>
+<span class="fc" id="L47">        searchArrow = findViewById(R.id.search_icon);</span>
+<span class="fc" id="L48">        profile = findViewById(R.id.profile_icon);</span>
+<span class="fc" id="L49">        shipmentID = findViewById(R.id.shipment_id);</span>
+<span class="fc" id="L50">        shipmentListView = findViewById(R.id.shipment_list_view);</span>
+<span class="fc" id="L51">        addButton = findViewById(R.id.add_icon);</span>
+<span class="fc" id="L52">        menu = findViewById(R.id.menu_icon);</span>
+<span class="fc" id="L53">        downloadShipments = findViewById(R.id.download_icon);</span>
+<span class="fc" id="L54">        addText = findViewById(R.id.add_text);</span>
+
+
+
+<span class="fc" id="L58">        shipmentList = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L59">        adapter = new ShipmentAdapter(this, shipmentList);</span>
+<span class="fc" id="L60">        shipmentListView.setAdapter(adapter);</span>
+
+
+
+        // ensure only admin level access can create shipments
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (SessionManager.getAccessLevel() != AccessLevel.ADMIN) {</span>
+<span class="nc" id="L66">            addButton.setVisibility(ImageView.GONE);</span>
+<span class="nc" id="L67">            addText.setVisibility(TextView.GONE);</span>
+            //downloadShipments
+        }
+
+
+
+<span class="fc" id="L73">        shipmentStatusMsg.setText(&quot;Loading...&quot;);</span>
+
+<span class="fc" id="L75">        ShipmentRequestMethods.viewShipmentsRequest(this, new NetworkCallback&lt;List&lt;ShipmentObject&gt;&gt;() {</span>
+            @Override
+            public void onSuccess(List&lt;ShipmentObject&gt; response) {
+<span class="nc" id="L78">                ShipmentRepository.shipments = response;</span>
+<span class="nc" id="L79">                shipmentStatusMsg.setText(&quot;&quot;);</span>
+<span class="nc" id="L80">                shipmentList.clear();</span>
+<span class="nc" id="L81">                shipmentList.addAll(response);</span>
+<span class="nc" id="L82">                adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L83">            }</span>
+
+            @Override
+            public void onError(String error) {
+<span class="nc" id="L87">                shipmentStatusMsg.setText(error);</span>
+<span class="nc" id="L88">            }</span>
+        });
+
+<span class="fc" id="L91">        downloadShipments.setOnClickListener(view -&gt; {</span>
+<span class="nc" id="L92">            shipmentStatusMsg.setText(&quot;Downloading...&quot;);</span>
+<span class="nc" id="L93">            ShipmentRequestMethods.downloadShipmentsRequest(this, new NetworkCallback() {</span>
+                @Override
+                public void onSuccess(Object result) {
+<span class="nc" id="L96">                    String csv = (String) result;</span>
+
+<span class="nc" id="L98">                    saveCsvToFile(ShipmentListViewActivity.this, csv);</span>
+
+<span class="nc" id="L100">                    shipmentStatusMsg.setText(&quot;CSV saved!&quot;);</span>
+<span class="nc" id="L101">                }</span>
+
+                @Override
+                public void onError(String error) {
+<span class="nc" id="L105">                    shipmentStatusMsg.setText(error);</span>
+<span class="nc" id="L106">                }</span>
+            });
+<span class="nc" id="L108">        });</span>
+
+<span class="fc" id="L110">        searchArrow.setOnClickListener(view -&gt; {</span>
+<span class="nc" id="L111">            String stringId = shipmentID.getText().toString();</span>
+
+            int id;
+            try {
+<span class="nc" id="L115">                id = Integer.parseInt(stringId);</span>
+<span class="nc" id="L116">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L117">                shipmentStatusMsg.setText(&quot;ID must be a number&quot;);</span>
+<span class="nc" id="L118">                return;</span>
+<span class="nc" id="L119">            }</span>
+
+<span class="nc bnc" id="L121" title="All 2 branches missed.">            if (stringId.isEmpty()) {</span>
+<span class="nc" id="L122">                shipmentStatusMsg.setText(&quot;Complete all fields&quot;);</span>
+<span class="nc" id="L123">                return;</span>
+            }
+
+<span class="nc" id="L126">            shipmentStatusMsg.setText(&quot;Loading...&quot;);</span>
+
+<span class="nc" id="L128">            ShipmentRequestMethods.viewShipmentViaId(this, id, new NetworkCallback&lt;ShipmentObject&gt;() {</span>
+               @Override
+               public void onSuccess(ShipmentObject response) {
+<span class="nc" id="L131">                   shipmentStatusMsg.setText(&quot;Success!&quot;);</span>
+<span class="nc" id="L132">                   Intent intent = new Intent(ShipmentListViewActivity.this, ShipmentViewActivity.class);</span>
+<span class="nc" id="L133">                   intent.putExtra(&quot;shipment_object&quot;, response);</span>
+<span class="nc" id="L134">                   startActivity(intent);</span>
+
+<span class="nc" id="L136">               }</span>
+               @Override
+               public void onError(String error) {
+<span class="nc" id="L139">                   shipmentStatusMsg.setText(error);</span>
+<span class="nc" id="L140">               }</span>
+            });
+
+<span class="nc" id="L143">        });</span>
+
+<span class="fc" id="L145">        shipmentListView.setOnItemClickListener((parent, view, position, id) -&gt; {</span>
+<span class="nc" id="L146">            ShipmentObject clickedShipment = (ShipmentObject) parent.getItemAtPosition(position);</span>
+
+<span class="nc" id="L148">            Intent intent = new Intent(ShipmentListViewActivity.this, ShipmentViewActivity.class);</span>
+<span class="nc" id="L149">            intent.putExtra(&quot;shipment_object&quot;, clickedShipment);</span>
+
+<span class="nc" id="L151">            startActivity(intent);</span>
+
+<span class="nc" id="L153">        });</span>
+
+        // set up banner
+<span class="fc" id="L156">        BannerHelper.setupBanner(this, profile, menu);</span>
+
+        // admin access may add shipments
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">        if (SessionManager.getAccessLevel() == AccessLevel.ADMIN) {</span>
+<span class="fc" id="L160">            addButton.setOnClickListener(view -&gt;</span>
+<span class="nc" id="L161">                    startActivity(new Intent(ShipmentListViewActivity.this, shipmentScheduleActivity.class)));</span>
+        }
+<span class="fc" id="L163">    }</span>
+    private static void saveCsvToFile(Context context, String csvData) {
+        try {
+<span class="nc" id="L166">            String fileName = &quot;shipments.csv&quot;;</span>
+
+<span class="nc" id="L168">            File file = new File(context.getExternalFilesDir(null), fileName);</span>
+
+<span class="nc" id="L170">            FileOutputStream fos = new FileOutputStream(file);</span>
+<span class="nc" id="L171">            fos.write(csvData.getBytes());</span>
+<span class="nc" id="L172">            fos.close();</span>
+
+<span class="nc" id="L174">            Log.d(&quot;CSV_SAVE&quot;, &quot;Saved at: &quot; + file.getAbsolutePath());</span>
+
+<span class="nc" id="L176">        } catch (Exception e) {</span>
+<span class="nc" id="L177">            e.printStackTrace();</span>
+<span class="nc" id="L178">        }</span>
+<span class="nc" id="L179">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

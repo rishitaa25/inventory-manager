@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InventoryChangeService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.services</a> &gt; <span class="el_source">InventoryChangeService.java</span></div><h1>InventoryChangeService.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.services;
+
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.InventoryChangeNotFoundException;
+import org.example.inventory_manager_beta1.entities.InventoryChange;
+import org.example.inventory_manager_beta1.repositories.InventoryChangeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+/**
+ * A robust service class to handle all the different logic and search methods relating
+ * to the InventoryChange class. It is complete with all the InventoryChangeRepository
+ * search methods defined, and it handles every InventoryChange related logic method
+ * with included custom error handling
+ */
+@Service
+public class InventoryChangeService {
+    /**
+     * The auto-injected InventoryChangeRepository for handling custom searches
+     */
+    @Autowired
+    private final InventoryChangeRepository inventoryChangeRepository;
+
+    /**
+     * INIT: Used for initializing the inventoryChangeRepository for custom database searches
+     * @param inventoryChangeRepository
+     *  The repository containing the custom search methods
+     */
+<span class="fc" id="L29">    public InventoryChangeService(InventoryChangeRepository inventoryChangeRepository) {this.inventoryChangeRepository = inventoryChangeRepository;}</span>
+
+    /*==================================SEARCH METHODS==================================*/
+
+    /**
+     * SEARCH: A search method for finding an InventoryChange using its
+     * identification number
+     * @param id
+     *  The identification number of the InventoryChange being searched for
+     * @return
+     *  The InventoryChange with the matching ID number if it exists
+     * @throws InventoryChangeNotFoundException
+     *  Custom NotFound exception if the InventoryChange ID search returns null
+     */
+    public InventoryChange findById(Integer id) {
+<span class="nc" id="L44">        return inventoryChangeRepository.findById(id)</span>
+<span class="nc" id="L45">                .orElseThrow(() -&gt; new InventoryChangeNotFoundException(&quot;Inventory change instance with ID: &quot; + id + &quot; not found&quot;));</span>
+    }
+
+    /*==================================LOGIC METHODS==================================*/
+
+    /**
+     * CREATE: A logic method that saves a new InventoryChange to the database
+     * @param change
+     *  The InventoryChange being saved
+     */
+<span class="nc" id="L55">    public void addChange(InventoryChange change){inventoryChangeRepository.save(change);}</span>
+
+    /**
+     * SEARCH: A search method for finding all InventoryChanges in the database
+     * @return
+     *  A list of all existing InventoryChanges in the database
+     */
+<span class="nc" id="L62">    public List&lt;InventoryChange&gt; findAll() {return inventoryChangeRepository.findAll();}</span>
+
+    /**
+     * DELETE: A logic method that deletes an InventoryChange from the database
+     * using its identification number
+     * @param id
+     *  The identification number of the InventoryChange being deleted
+     */
+    public void deleteChange(Integer id){
+<span class="nc" id="L71">        inventoryChangeRepository.deleteById(id);</span>
+<span class="nc" id="L72">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ItemController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.mainApplicationClasses</a> &gt; <span class="el_source">ItemController.java</span></div><h1>ItemController.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.mainApplicationClasses;
+
+import jakarta.transaction.Transactional;
+import org.example.inventory_manager_beta1.DTO.Items.Add.AddItemRequest;
+import org.example.inventory_manager_beta1.DTO.Items.Search.SearchItemResponse;
+import org.example.inventory_manager_beta1.DTO.Items.Update.UpdateItemRequest;
+import org.example.inventory_manager_beta1.DataEnums.StorageType;
+import org.example.inventory_manager_beta1.entities.Item;
+import org.example.inventory_manager_beta1.services.ItemService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+/**
+ * A controller class containing all the different HTTP mappings for Item related methods
+ */
+@RestController
+@RequestMapping(&quot;/item&quot;)
+<span class="fc" id="L19">public class ItemController {</span>
+    /**
+     * The auto-injected itemService class for handling Item related logic
+     */
+    @Autowired
+    private ItemService itemService;
+
+    /**
+     * CREATE: A controller method for handling Item creation
+     * @param addItemRequest
+     *  The DTO containing the Item information from a JSON
+     * @return
+     *  A message confirming if the Item was created
+     */
+    @PostMapping(&quot;/add&quot;)
+<span class="nc" id="L34">    public String addItem (@RequestBody AddItemRequest addItemRequest) {return itemService.addNewItem(addItemRequest).getMessage();}</span>
+
+    /**
+     * CREATE: A logic method for creating several items at once
+     * @param addItemRequests
+     *  The Item DTO containing the Item information from a JSON
+     * @return
+     *  True if completed
+     */
+    @PostMapping(&quot;/multi-add&quot;)
+    @Transactional
+    public Boolean addItems (@RequestBody List&lt;AddItemRequest&gt; addItemRequests) {
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        for (AddItemRequest addItemRequest : addItemRequests) {</span>
+<span class="nc" id="L47">            itemService.addNewItem(addItemRequest);</span>
+<span class="nc" id="L48">        }</span>
+<span class="nc" id="L49">        return true;</span>
+    }
+
+    /**
+     * READ: A search method for getting a specific Item
+     * @param itemSKU
+     *  The SKU of the item
+     * @return
+     *  The Item with the matching SKU if it exists
+     */
+    @GetMapping(&quot;/find-by/sku/{itemSKU}&quot;)
+<span class="nc" id="L60">    public Item getItemViaSKU(@PathVariable(&quot;itemSKU&quot;) Integer itemSKU) {return itemService.findBySKU(itemSKU);}</span>
+
+    /**
+     * READ: A search method for getting details of a specific Item
+     * @param itemSKU
+     *  The SKU of the item
+     * @return
+     *  A message with details about the Item
+     */
+    @GetMapping(&quot;/find-by/sku/{itemSKU}/details&quot;)
+<span class="nc" id="L70">    public SearchItemResponse getItemDetailViaSKU(@PathVariable(&quot;itemSKU&quot;) Integer itemSKU) {return itemService.findDetailsById(itemSKU);}</span>
+
+    /**
+     * READ: A search method for getting a specific Item
+     * @param itemName
+     *  The name of the item
+     * @return
+     *  A List of Item(s) with a matching name
+     */
+    @GetMapping(&quot;/find-by/name/{itemName}&quot;)
+<span class="nc" id="L80">    public List&lt;Item&gt; getItemViaName(@PathVariable(&quot;itemName&quot;) String itemName) {return itemService.findByItemName(itemName);}</span>
+
+    /**
+     * READ: A search method for getting a specific Item
+     * @param itemQuantity
+     *  The quantity of the item
+     * @return
+     *  A List of Item(s) with a matching quantity or greater
+     */
+    @GetMapping(&quot;/find-by/quantity/{itemQuantity}&quot;)
+<span class="nc" id="L90">    public List&lt;Item&gt; getItemViaQuantity(@PathVariable(&quot;itemQuantity&quot;) Integer itemQuantity) {return itemService.findByQuantity(itemQuantity);}</span>
+
+    /**
+     * READ: A search method for getting a specific Item
+     * @param itemWeight
+     *  The weight of the item
+     * @return
+     *  A List of Item(s) with a matching weight or greater
+     */
+    @GetMapping(&quot;/find-by/weight/{itemWeight}&quot;)
+<span class="nc" id="L100">    public List&lt;Item&gt; getItemViaWeight(@PathVariable(&quot;itemWeight&quot;) Double itemWeight) {return itemService.findByWeight(itemWeight);}</span>
+
+    /**
+     * READ: A search method for getting a specific Item
+     * @param itemStorageType
+     *  The storage type of the item
+     * @return
+     *  A List of Item(s) with a matching storage type
+     */
+    @GetMapping(&quot;/find-by/storage-type/{itemStorageType}&quot;)
+<span class="nc" id="L110">    public List&lt;Item&gt; getItemViaStorageType(@PathVariable(&quot;itemStorageType&quot;) StorageType itemStorageType) {return itemService.findByStorageType(itemStorageType);}</span>
+
+    /**
+     * READ: A search method for getting all existing items
+     * @return
+     *  The list of current items
+     */
+    @GetMapping(&quot;/find/all&quot;)
+<span class="nc" id="L118">    public List&lt;Item&gt; getItems() {return itemService.findAll();}</span>
+
+    /**
+     * UPDATE: A logic method for updating an existing Item
+     * @param updateItemRequest
+     *  The DTO containing the new Item information from a JSON
+     * @return
+     *  A message confirming a successful information update
+     */
+    @PutMapping(&quot;/update&quot;)
+<span class="nc" id="L128">    public String updateItem(@RequestBody UpdateItemRequest updateItemRequest) {return itemService.updateItem(updateItemRequest).getMessage();}</span>
+
+    /**
+     * UPDATE: A logic method for increasing the quantity of an existing Item
+     * @param itemSKU
+     *  The SKU of the Item
+     * @param quantity
+     *  The quantity being added to the existing Item
+     * @return
+     *  A status message containing details about the Item's new quantity
+     */
+    @Transactional
+    @PatchMapping(&quot;/{itemSKU}/quantity/increase/{quantity}&quot;)
+<span class="nc" id="L141">    public String increaseQuantity(@PathVariable(&quot;itemSKU&quot;) Integer itemSKU, @PathVariable(&quot;quantity&quot;) Integer quantity) {return itemService.increaseItemQuantity(itemSKU, quantity);}</span>
+
+    /**
+     * UPDATE: A logic method for decreasing the quantity of an existing Item
+     * @param itemSKU
+     *  The SKU of the Item
+     * @param quantity
+     *  The quantity being added to the existing Item
+     * @return
+     *  A status message containing details about the Item's new quantity
+     */
+    @Transactional
+    @PatchMapping(&quot;/{itemSKU}/quantity/decrease/{quantity}&quot;)
+<span class="nc" id="L154">    public String decreaseQuantity(@PathVariable(&quot;itemSKU&quot;) Integer itemSKU, @PathVariable(&quot;quantity&quot;) Integer quantity) {return itemService.decreaseItemQuantity(itemSKU, quantity);}</span>
+
+
+    /**
+     * DELETE: A logic method for deleting a specific Item
+     * @param skuId
+     *  The skuId of the item
+     * @return
+     *  True if completed
+     */
+    @DeleteMapping(&quot;/delete/{skuId}&quot;)
+    public Boolean deleteItem(@PathVariable Integer skuId) {
+<span class="nc" id="L166">        itemService.deleteById(skuId);</span>
+<span class="nc" id="L167">        return true;</span>
+    }
+
+    /**
+     * DELETE: A logic method for deleting all items
+     * @return
+     *  True if completed
+     */
+    @DeleteMapping(&quot;/delete/all&quot;)
+    public Boolean deleteAllItems() {
+<span class="nc" id="L177">        itemService.deleteAll();</span>
+<span class="nc" id="L178">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

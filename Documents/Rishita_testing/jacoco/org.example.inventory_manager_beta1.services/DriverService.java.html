@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DriverService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.services</a> &gt; <span class="el_source">DriverService.java</span></div><h1>DriverService.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.services;
+
+import org.example.inventory_manager_beta1.Configuration.SessionToken.JwtUtil;
+import org.example.inventory_manager_beta1.DTO.Employees.Login.*;
+import org.example.inventory_manager_beta1.DTO.Employees.SignUp.*;
+import org.example.inventory_manager_beta1.DTO.Employees.Update.*;
+import org.example.inventory_manager_beta1.DataEnums.AccessLevel;
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.DriverNotFoundException;
+import org.example.inventory_manager_beta1.entities.Driver;
+import org.example.inventory_manager_beta1.entities.Session;
+import org.example.inventory_manager_beta1.repositories.AdminRepository;
+import org.example.inventory_manager_beta1.repositories.DriverRepository;
+import org.example.inventory_manager_beta1.repositories.EmployeeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * A robust service class to handle all the different logic and search methods relating
+ * to the Driver class. It is complete with all the DriverRepository search methods
+ * defined, and it handles every Driver related logic method with included custom error handling
+ */
+@Service
+public class DriverService {
+    /**
+     * The auto-injected EmployeeRepository for handling custom Employee searches
+     */
+    @Autowired
+    private final EmployeeRepository employeeRepository;
+    /**
+     * The auto-injected DriverRepository for handling custom Driver searches
+     */
+    @Autowired
+    private final DriverRepository driverRepository;
+    /**
+     * The auto-injected AdminRepository for handling custom Admin searches
+     */
+    @Autowired
+    private final AdminRepository adminRepository;
+
+
+    @Autowired
+    private final SessionService sessionService;
+
+    /**
+     * INIT: Used for initializing the repositories for custom database checks and searches
+     * @param employeeRepository
+     *  The repository containing the custom Employee search methods
+     * @param driverRepository
+     * The repository containing the custom Driver search methods
+     * @param adminRepository
+     * The repository containing the custom Admin search methods
+     */
+<span class="fc" id="L56">    public DriverService(EmployeeRepository employeeRepository, DriverRepository driverRepository, AdminRepository adminRepository, SessionService sessionService) {</span>
+<span class="fc" id="L57">        this.employeeRepository = employeeRepository;</span>
+<span class="fc" id="L58">        this.driverRepository = driverRepository;</span>
+<span class="fc" id="L59">        this.adminRepository = adminRepository;</span>
+<span class="fc" id="L60">        this.sessionService = sessionService;</span>
+<span class="fc" id="L61">    }</span>
+
+    /**
+     * An auto-injected Argon2 PasswordEncoder for handling password hashing
+     */
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    /*==================================SEARCH METHODS==================================*/
+
+    /**
+     * SEARCH: A search method for finding a Driver using their identification number
+     * @param id
+     *  The identification number of the Driver being searched for
+     * @return
+     *  The Driver with the matching ID number if they exist
+     * @throws DriverNotFoundException
+     *  Custom NotFound exception if the Driver ID search returns null
+     */
+    public Driver findById(Integer id) {
+<span class="nc" id="L84">        return driverRepository.findById(id)</span>
+<span class="nc" id="L85">                .orElseThrow(() -&gt; new DriverNotFoundException(&quot;Driver with ID: &quot; + id + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding a Driver using their Social Security Number
+     * @param ssn
+     *  The Social Security Number of the Driver being searched for
+     * @return
+     *  The Driver with the matching SSN if they exist
+     * @throws DriverNotFoundException
+     *  Custom NotFound exception if the Driver SSN search returns null
+     */
+    public Driver findBySSN(String ssn) {
+<span class="nc" id="L98">        return driverRepository.findBySsn(ssn)</span>
+<span class="nc" id="L99">                .orElseThrow(() -&gt; new DriverNotFoundException(&quot;Driver with SSN: &quot; + ssn + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding all Drivers in the database
+     * @return
+     *  A list of all existing Drivers in the database
+     */
+<span class="nc" id="L107">    public List&lt;Driver&gt; findAll() {return driverRepository.findAll();}</span>
+
+    /**
+     * SEARCH: A search method for finding all Drivers matching a list of identification numbers
+     * @param driverIds
+     *  The list of identification numbers of the Drivers being searched for
+     * @return
+     *  A list of all Drivers with a matching identification number
+     */
+<span class="nc" id="L116">    public List&lt;Driver&gt; findAllById(List&lt;Integer&gt; driverIds) {return driverRepository.findAllById(driverIds);}</span>
+
+    /**
+     * SEARCH: A search method for finding Driver(s) using their first name
+     * @param firstName
+     *  The first name of the Driver(s) being searched for
+     * @return
+     *  A list of all Drivers with a matching first name
+     */
+<span class="nc" id="L125">    public List&lt;Driver&gt; findByFirstName(String firstName) {return driverRepository.findByFirstName(firstName);}</span>
+
+    /**
+     * SEARCH: A search method for finding Driver(s) using their last name
+     * @param lastName
+     *  The last name of the Driver(s) being searched for
+     * @return
+     *  A list of all Drivers with a matching last name
+     */
+<span class="nc" id="L134">    public List&lt;Driver&gt; findByLastName(String lastName) {return driverRepository.findByLastName(lastName);}</span>
+
+    /**
+     * SEARCH: A search method for finding a Driver using their username
+     * @param userName
+     *  The username of the Driver being searched for
+     * @return
+     *  The Driver with the matching username if they exist
+     * @throws DriverNotFoundException
+     *  Custom NotFound exception if the Driver username search returns null
+     */
+    public Driver findByUserName(String userName) {
+<span class="nc" id="L146">        return driverRepository.findByUserName(userName)</span>
+<span class="nc" id="L147">                .orElseThrow(() -&gt; new DriverNotFoundException(&quot;Driver with username: &quot; + userName + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding a Driver using their email address
+     * @param email
+     *  The email of the Driver being searched for
+     * @return
+     *  The Driver with the matching email if they exist
+     * @throws DriverNotFoundException
+     *  Custom NotFound exception if the Driver email search returns null
+     */
+    public Driver findByEmail(String email) {
+<span class="nc" id="L160">        return driverRepository.findByEmail(email)</span>
+<span class="nc" id="L161">                .orElseThrow(() -&gt; new DriverNotFoundException(&quot;Driver with email: &quot; + email + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding a Driver using their phone number
+     * @param phoneNumber
+     *  The phone number of the Driver being searched for
+     * @return
+     *  The Driver with the matching phone number if they exist
+     * @throws DriverNotFoundException
+     *  Custom NotFound exception if the Driver phone number search returns null
+     */
+    public Driver findByPhoneNumber(String phoneNumber) {
+<span class="nc" id="L174">        return driverRepository.findByPhoneNumber(phoneNumber)</span>
+<span class="nc" id="L175">                .orElseThrow(() -&gt; new DriverNotFoundException(&quot;Driver with phone number: &quot; + phoneNumber + &quot; not found&quot;));</span>
+    }
+
+    /*==================================LOGIC METHODS==================================*/
+
+    /**
+     * CREATE: A logic method that creates a new Driver object, automatically
+     * hashes their password using Argon2, assigns an access level, and adds it
+     * to the database
+     * @param driverSignUp
+     *  The DTO containing all the Driver's information
+     * @return
+     *  A DTO containing the new Driver's ID, first name, and access level
+     */
+    public SignUpResponse registerDriver(SignUpRequest driverSignUp) {
+<span class="nc" id="L190">        Driver newDriver = new Driver(</span>
+<span class="nc" id="L191">                driverSignUp.getSsn(),</span>
+<span class="nc" id="L192">                driverSignUp.getFirstName(),</span>
+<span class="nc" id="L193">                driverSignUp.getLastName(),</span>
+<span class="nc" id="L194">                driverSignUp.getUserName(),</span>
+<span class="nc" id="L195">                driverSignUp.getEmail(),</span>
+<span class="nc" id="L196">                driverSignUp.getPhoneNumber()</span>
+        );
+<span class="nc" id="L198">        newDriver.setPassword(passwordEncoder.encode(driverSignUp.getPassword()));</span>
+        //Check to make sure the very first person added to the system
+        //has access to every function
+<span class="nc bnc" id="L201" title="All 6 branches missed.">        if (employeeRepository.count() == 0 &amp;&amp; driverRepository.count() == 0 &amp;&amp; adminRepository.count() == 0) {</span>
+<span class="nc" id="L202">            newDriver.setAccessLevel(AccessLevel.GENERAL_MANAGER);</span>
+        }
+        else {
+<span class="nc" id="L205">            newDriver.setAccessLevel(AccessLevel.DRIVER);</span>
+        }
+<span class="nc" id="L207">        saveDriver(newDriver);</span>
+<span class="nc" id="L208">        return new SignUpResponse(newDriver.getEmployeeId(), newDriver.getFirstName(), newDriver.getUserName(), newDriver.getAccessLevel());</span>
+    }
+
+    /**
+     * UPDATE: A logic method that saves a Driver to the database
+     * @param driver
+     *  The Driver being saved
+     */
+<span class="nc" id="L216">    public void saveDriver(Driver driver) {driverRepository.save(driver);}</span>
+
+    /**
+     * UPDATE: A logic method that updates an existing Driver's information
+     * @param driverUpdateRequest
+     *  The DTO containing the new information for the Driver
+     * @return
+     *  A DTO containing the updated Driver's ID and username
+     */
+    public UpdateEmployeeResponse updateDriver(UpdateEmployeeRequest driverUpdateRequest) {
+<span class="nc" id="L226">        Driver updateDriver = findById(driverUpdateRequest.getEmployeeId());</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        if (driverUpdateRequest.getFirstName() != null)</span>
+<span class="nc" id="L228">            updateDriver.setFirstName(driverUpdateRequest.getFirstName());</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">        if (driverUpdateRequest.getLastName() != null)</span>
+<span class="nc" id="L230">            updateDriver.setLastName(driverUpdateRequest.getLastName());</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (driverUpdateRequest.getUserName() != null)</span>
+<span class="nc" id="L232">            updateDriver.setUserName(driverUpdateRequest.getUserName());</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (driverUpdateRequest.getEmail() != null)</span>
+<span class="nc" id="L234">            updateDriver.setEmail(driverUpdateRequest.getEmail());</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        if (driverUpdateRequest.getPhoneNumber() != null)</span>
+<span class="nc" id="L236">            updateDriver.setPhoneNumber(driverUpdateRequest.getPhoneNumber());</span>
+<span class="nc bnc" id="L237" title="All 4 branches missed.">        if (driverUpdateRequest.getPassword() != null &amp;&amp; !driverUpdateRequest.getPassword().isBlank()) {</span>
+<span class="nc" id="L238">            updateDriver.setPassword(passwordEncoder.encode(driverUpdateRequest.getPassword()));</span>
+        }
+<span class="nc" id="L240">        driverRepository.save(updateDriver);</span>
+<span class="nc" id="L241">        return new UpdateEmployeeResponse(updateDriver.getEmployeeId(), updateDriver.getUserName());</span>
+    }
+
+    /**
+     * DELETE: A logic method that deletes a Driver from the database using their
+     * identification number
+     * @param driverId
+     *  The identification number of the Driver being deleted
+     */
+    public void deleteDriver(Integer driverId) {
+        //Validation check
+<span class="nc" id="L252">        findById(driverId);</span>
+<span class="nc" id="L253">        driverRepository.deleteById(driverId);</span>
+<span class="nc" id="L254">    }</span>
+
+    /**
+     * DELETE: A logic method that deletes all Drivers from the database
+     */
+<span class="nc" id="L259">    public void deleteAllDrivers() {driverRepository.deleteAll();}</span>
+
+    /**
+     * VERIFY: A logic method to verify if the incoming username and password match the
+     * username and password stored for the Driver
+     * @param loginAttempt
+     *  The DTO containing the username and password
+     * @return
+     *  A DTO containing a message regarding the status of the login
+     */
+    public LoginResponse driverLogin(LoginRequest loginAttempt) {
+<span class="nc" id="L270">        Optional&lt;Driver&gt; driverOpt = driverRepository.findByUserName(loginAttempt.getUserName());</span>
+
+<span class="nc bnc" id="L272" title="All 2 branches missed.">        if (driverOpt.isEmpty()) {</span>
+<span class="nc" id="L273">            return new LoginResponse(&quot;User not found&quot;, null, null, null, null, null);</span>
+        }
+
+<span class="nc" id="L276">        Driver driver = driverOpt.get();</span>
+
+<span class="nc bnc" id="L278" title="All 2 branches missed.">        if (!passwordEncoder.matches(loginAttempt.getPassword(), driver.getPassword())) {</span>
+<span class="nc" id="L279">            return new LoginResponse(&quot;Invalid password&quot;, null, null, null, null, null);</span>
+        }
+
+        // Create a server-side session for this driver
+<span class="nc" id="L283">        Session session = sessionService.createSession(</span>
+<span class="nc" id="L284">                driver.getEmployeeId(),</span>
+<span class="nc" id="L285">                driver.getAccessLevel(),</span>
+<span class="nc" id="L286">                driver.getUserName()</span>
+        );
+
+        // Generate JWT containing only the session ID
+<span class="nc" id="L290">        String token = jwtUtil.generateToken(session.getSessionId());</span>
+
+<span class="nc" id="L292">        return new LoginResponse(</span>
+                &quot;Login successful&quot;,
+<span class="nc" id="L294">                driver.getEmployeeId(),</span>
+<span class="nc" id="L295">                driver.getFirstName(),</span>
+<span class="nc" id="L296">                driver.getLastName(),</span>
+<span class="nc" id="L297">                driver.getAccessLevel().name(),</span>
+                token
+        );
+    }
+
+    /**
+     *
+     * @param authHeader
+     * @return
+     */
+    public String driverLogout(String authHeader) {
+<span class="nc bnc" id="L308" title="All 4 branches missed.">        if (authHeader == null || !authHeader.startsWith(&quot;Bearer &quot;)) {</span>
+<span class="nc" id="L309">            return &quot;No active session to log out of.&quot;;</span>
+        }
+
+<span class="nc" id="L312">        String token = authHeader.substring(7);</span>
+<span class="nc" id="L313">        String sessionId = jwtUtil.getSessionId(token);</span>
+<span class="nc" id="L314">        sessionService.closeSession(sessionId);</span>
+<span class="nc" id="L315">        return &quot;Logged out successfully.&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

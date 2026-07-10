@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.mainApplicationClasses</a> &gt; <span class="el_source">AdminController.java</span></div><h1>AdminController.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.mainApplicationClasses;
+
+import org.example.inventory_manager_beta1.Configuration.Annotation.RequiresAccess;
+import org.example.inventory_manager_beta1.DTO.Employees.Login.LoginRequest;
+import org.example.inventory_manager_beta1.DTO.Employees.Login.LoginResponse;
+import org.example.inventory_manager_beta1.DTO.Employees.SignUp.SignUpRequest;
+import org.example.inventory_manager_beta1.DTO.Employees.SignUp.SignUpResponse;
+import org.example.inventory_manager_beta1.DTO.Employees.Update.UpdateEmployeeRequest;
+import org.example.inventory_manager_beta1.DataEnums.AccessLevel;
+import org.example.inventory_manager_beta1.DataEnums.ManagementTitle;
+import org.example.inventory_manager_beta1.entities.Admin;
+import org.example.inventory_manager_beta1.entities.Shift;
+import org.example.inventory_manager_beta1.services.AdminService;
+import org.example.inventory_manager_beta1.services.ShiftService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
+import java.util.List;
+
+/**
+ * A controller class containing all the different HTTP mappings for Admin related methods
+ */
+@RestController
+@RequestMapping(&quot;/admin&quot;)
+<span class="fc" id="L26">public class AdminController {</span>
+    /**
+     * The auto-injected AdminService class for handling Admin related logic
+     */
+    @Autowired
+    private AdminService adminService;
+    /**
+     * The auto-injected ShiftService class for handling Shift related logic
+     */
+    @Autowired
+    private ShiftService shiftService;
+
+    /**
+     * CREATE: A controller method for handling Admin creation
+     * @param signUpRequest
+     *  The DTO containing the Admin information from a JSON
+     * @return
+     *  A message confirming if the sign-up is successful
+     */
+    @PostMapping(&quot;/signup&quot;)
+<span class="fc" id="L46">    public SignUpResponse adminSignup (@RequestBody SignUpRequest signUpRequest) {return adminService.registerAdmin(signUpRequest);}</span>
+
+    /**
+     * VERIFY: A controller method to handle verifying an Admin's login attempt
+     * @param loginRequest
+     *  The DTO containing the Admin's username and password
+     * @return
+     *  A LoginResponse containing the session token on success
+     */
+    @PostMapping(&quot;/login&quot;)
+<span class="nc" id="L56">    public LoginResponse adminLogin (@RequestBody LoginRequest loginRequest) {return adminService.adminLogin(loginRequest);}</span>
+
+    /**
+     * LOGOUT: A controller method to handle closing a session opened by an Admin
+     * @param authHeader
+     *  The Authorization header from the request
+     * @return
+     *  Confirmation message on success, error message if no token provided
+     */
+    @PostMapping(&quot;/logout&quot;)
+<span class="nc" id="L66">    public ResponseEntity&lt;String&gt; logout (@RequestHeader(value = &quot;Authorization&quot;, required = false) String authHeader) {return ResponseEntity.ok(adminService.adminLogout(authHeader));}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Admin
+     * @param adminId
+     *  The EmployeeID of the specific Admin
+     * @return
+     *  The Admin with the matching ID if they exist
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;find-by/id/{adminId}&quot;)
+<span class="nc" id="L77">    public Admin getAdminViaId (@PathVariable(&quot;adminId&quot;) Integer adminId) {return adminService.findById(adminId);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Admin
+     * @param adminSSN
+     *  The SSN of the specific Admin
+     * @return
+     *  The Admin with the matching SSN if they exist
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;find-by/ssn/{adminSSN}&quot;)
+<span class="nc" id="L88">    public Admin getAdminViaSSN (@PathVariable(&quot;adminSSN&quot;) String adminSSN) {return adminService.findBySSN(adminSSN);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Admin
+     * @param adminUserName
+     *  The username of the specific Admin
+     * @return
+     *  The Admin with the matching username if they exist
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;find-by/username/{adminUserName}&quot;)
+<span class="nc" id="L99">    public Admin getAdminViaUserName (@PathVariable(&quot;adminUserName&quot;) String adminUserName) {return adminService.findByUserName(adminUserName);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Admin
+     * @param adminFirstName
+     *  The first name of the specific Admin
+     * @return
+     *  A List of Admin(s) with a matching first name
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;find-by/first-names/{adminFirstName}&quot;)
+<span class="nc" id="L110">    public List&lt;Admin&gt; getAdminsViaFirstName (@PathVariable(&quot;adminFirstName&quot;) String adminFirstName) {return adminService.findByFirstName(adminFirstName);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Admin
+     * @param adminLastName
+     *  The last name of the specific Admin
+     * @return
+     *  A List of Admin(s) with a matching last name
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;find-by/last-names/{adminLastName}&quot;)
+<span class="nc" id="L121">    public List&lt;Admin&gt; getAdminsViaLastName (@PathVariable(&quot;adminLastName&quot;) String adminLastName) {return adminService.findByLastName(adminLastName);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Admin
+     * @param adminEmail
+     *  The email of the specific Admin
+     * @return
+     *  The Admin with the matching email if they exist
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;find-by/email/{adminEmail}&quot;)
+<span class="nc" id="L132">    public Admin getAdminsViaEmail (@PathVariable(&quot;adminEmail&quot;) String adminEmail) {return adminService.findByEmail(adminEmail);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Admin
+     * @param adminPhoneNumber
+     *  The phone number of the specific Admin
+     * @return
+     *  The Admin with the matching phone number if they exist
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;find-by/phone-number/{adminPhoneNumber}&quot;)
+<span class="nc" id="L143">    public Admin getAdminsViaPhoneNumber (@PathVariable(&quot;adminPhoneNumber&quot;) String adminPhoneNumber) {return adminService.findByPhoneNumber(adminPhoneNumber);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Admin
+     * @param adminAccessLevel
+     *  The access level of the specific Admin
+     * @return
+     *  A List of Admin(s) with a matching access level
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;find-by/access-level/{adminAccessLevel}&quot;)
+<span class="nc" id="L154">    public List&lt;Admin&gt; getAdminsViaAccessLevel (@PathVariable(&quot;adminAccessLevel&quot;) AccessLevel adminAccessLevel) {return adminService.findByAccessLevel(adminAccessLevel);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Admin
+     * @param adminManagementTitle
+     *  The management title of the specific Admin
+     * @return
+     *  A List of Admin(s) with a matching management title
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;find-by/management-title/{adminManagementTitle}&quot;)
+<span class="nc" id="L165">    public List&lt;Admin&gt; getAdminsViaManagementTitle (@PathVariable(&quot;adminManagementTitle&quot;) ManagementTitle adminManagementTitle) {return adminService.findByManagementTitle(adminManagementTitle);}</span>
+
+    /**
+     * READ: A controller method for handling searching for all Admins
+     * @return
+     *  A List of all existing Admins
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;/find/all&quot;)
+<span class="nc" id="L174">    public List&lt;Admin&gt; admins () { return adminService.findAll(); }</span>
+
+    /**
+     * READ: A controller method that handles getting all shifts for a specific Admin
+     * @param adminId
+     *  The ID of the Admin
+     * @return A list of shifts for the matching Admin
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;/{adminId}/all-shifts&quot;)
+<span class="nc" id="L184">    public List&lt;Shift&gt; getShifts (@PathVariable(&quot;adminId&quot;) Integer adminId) {return shiftService.findAllEmployeeShifts(adminId);}</span>
+
+    /**
+     * READ: A controller method that handles getting weekly shifts for a specific Admin
+     * @param adminId
+     *  The ID of the Admin
+     * @param startDay
+     *  The start date of the week
+     * @return A list of shifts for the matching Admin within the week
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;/{adminId}/weekly-shifts/{startDay}&quot;)
+<span class="nc" id="L196">    public List&lt;Shift&gt; getWeeklyShifts (@PathVariable(&quot;adminId&quot;) Integer adminId, @PathVariable(&quot;startDay&quot;) LocalDate startDay) {return shiftService.findWeeklyEmployeeShifts(adminId, startDay);}</span>
+
+    /**
+     * UPDATE: A controller method for handling updating an existing Admin
+     * @param adminUpdateRequest
+     *  The DTO containing the new Admin information from a JSON
+     * @return A message confirming a successful information update
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @PutMapping(&quot;/update&quot;)
+<span class="nc" id="L206">    public String updateAdmin (@RequestBody UpdateEmployeeRequest adminUpdateRequest) {return adminService.updateAdmin(adminUpdateRequest).getMessage();}</span>
+
+    /**
+     * DELETE: A controller method for handling specific Admin deletion
+     * @param adminId
+     *  The EmployeeID of the Admin
+     * @return True if completed
+     */
+    @RequiresAccess(AccessLevel.GENERAL_MANAGER)
+    @DeleteMapping(&quot;/delete/{adminId}&quot;)
+    public Boolean deleteAdmin (@PathVariable Integer adminId) {
+<span class="nc" id="L217">        adminService.deleteAdmin(adminId);</span>
+<span class="nc" id="L218">        return true;</span>
+    }
+
+    /**
+     * DELETE: A controller method for handling deleting all Admins
+     * @return True if completed
+     */
+    @RequiresAccess(AccessLevel.GENERAL_MANAGER)
+    @DeleteMapping(&quot;/delete/all&quot;)
+    public Boolean deleteAllAdmins () {
+<span class="nc" id="L228">        adminService.deleteAllAdmin();</span>
+<span class="nc" id="L229">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

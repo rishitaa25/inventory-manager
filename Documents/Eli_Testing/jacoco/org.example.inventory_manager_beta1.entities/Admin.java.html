@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Admin.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.entities</a> &gt; <span class="el_source">Admin.java</span></div><h1>Admin.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.entities;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.example.inventory_manager_beta1.DataEnums.ManagementTitle;
+
+/**
+ * A robust Entity class for modeling an Admin within the inventory management system
+ */
+@Entity
+@Getter
+@Setter
+@Table(name = &quot;Admins&quot;)
+@ToString(callSuper = true)
+public class Admin extends Employee{
+    /**
+     * A ManagementTitle Enumerated Constant for representing the Amin's management title.
+     * The column is separate from the Employee table within H2 or MySQL
+     */
+    @Column(name = &quot;management_title&quot;)
+    @Enumerated(EnumType.STRING)
+    private ManagementTitle managementTitle;
+
+    /**
+     * INIT: The No Args constructor required by SpringBoot
+     */
+<span class="fc" id="L29">    public Admin() {}</span>
+
+    /**
+     * INIT: The Minimal Args constructor for creating an Admin object
+     * @param ssn
+     *  The Social Security Number of the Admin
+     * @param firstName
+     *  The first name of the Admin
+     * @param userName
+     *  The username of the Admin
+     */
+<span class="nc" id="L40">    public Admin(String ssn, String firstName, String userName) {super(ssn, firstName, userName);}</span>
+
+    /**
+     * INIT: The All Args constructor for creating an Admin object
+     * @param ssn
+     *  The Social Security Number of the Admin
+     * @param firstName
+     *  The first name of the Admin
+     * @param lastName
+     *  The last name of the Admin
+     * @param userName
+     *  The username of the Admin
+     * @param email
+     *  The email address of the Admin
+     * @param phoneNumber
+     *  The phone number of the Admin
+     * @param managementTitle
+     *  The management title of the Admin
+     */
+    public Admin(String ssn, String firstName, String lastName, String userName, String email, String phoneNumber, ManagementTitle managementTitle) {
+<span class="fc" id="L60">        super(ssn, firstName, lastName, userName, email, phoneNumber);</span>
+<span class="fc" id="L61">        this.managementTitle = managementTitle;</span>
+<span class="fc" id="L62">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

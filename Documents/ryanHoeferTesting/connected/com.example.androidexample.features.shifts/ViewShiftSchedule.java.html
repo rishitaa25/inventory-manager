@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ViewShiftSchedule.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.shifts</a> &gt; <span class="el_source">ViewShiftSchedule.java</span></div><h1>ViewShiftSchedule.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.shifts;
+
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CalendarView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.Calendar;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.example.androidexample.R;
+import com.example.androidexample.VolleySingleton;
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+import com.example.androidexample.features.navigation.ui.MainActivity;
+import com.example.androidexample.features.user.data.SessionManager;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+<span class="fc" id="L44">public class ViewShiftSchedule extends AppCompatActivity implements View.OnClickListener{</span>
+
+    private Button forwardWeekButton, backwardWeekButton;
+
+<span class="fc" id="L48">    private static String url = &quot;http://coms-3090-013.class.las.iastate.edu:8080/employee/&quot;;</span>
+    private Calendar calendar;
+    private LocalDate todaysDate,startOfWeek,endOfWeek;
+    private LinearLayout shiftContainer;
+    private ImageView profile, menu;
+
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L58">        calendar = Calendar.getInstance();</span>
+<span class="fc" id="L59">        calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);</span>
+
+<span class="fc" id="L61">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L62">        setContentView(R.layout.activity_display_shift_schedule);</span>
+
+
+
+<span class="fc" id="L66">        shiftContainer = findViewById(R.id.shiftContainer);</span>
+<span class="fc" id="L67">        forwardWeekButton = findViewById(R.id.forwardWeekButton);</span>
+<span class="fc" id="L68">        backwardWeekButton = findViewById(R.id.backwardWeekButton);</span>
+
+        /* button click listeners */
+<span class="fc" id="L71">        forwardWeekButton.setOnClickListener(this);</span>
+<span class="fc" id="L72">        backwardWeekButton.setOnClickListener(this);</span>
+
+
+        //banner setup
+<span class="fc" id="L76">        profile = findViewById(R.id.profile_icon);</span>
+<span class="fc" id="L77">        menu = findViewById(R.id.menu_icon);</span>
+<span class="fc" id="L78">        BannerHelper.setupBanner(this, profile, menu);</span>
+
+
+
+<span class="fc" id="L82">        int year  = calendar.get(Calendar.YEAR);</span>
+<span class="fc" id="L83">        int month = calendar.get(Calendar.MONTH) + 1;</span>
+<span class="fc" id="L84">        int day   = calendar.get(Calendar.DAY_OF_MONTH);</span>
+
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+<span class="fc" id="L87">            todaysDate = LocalDate.of(year, month, day);</span>
+<span class="fc" id="L88">            startOfWeek = todaysDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));</span>
+<span class="fc" id="L89">            endOfWeek = todaysDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY));</span>
+<span class="fc" id="L90">            setShiftSchedule(startOfWeek.toString(),endOfWeek.toString());</span>
+
+        }
+
+
+
+
+<span class="fc" id="L97">    }</span>
+
+    @Override
+    public void onClick(View v) {
+<span class="fc" id="L101">        int id = v.getId();</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        if(id == R.id.forwardWeekButton){</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">            if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+<span class="fc" id="L104">                startOfWeek = startOfWeek.plusWeeks(1);</span>
+<span class="fc" id="L105">                endOfWeek = endOfWeek.plusWeeks(1);</span>
+<span class="fc" id="L106">                setShiftSchedule(startOfWeek.toString(), endOfWeek.toString());</span>
+            }
+
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        }else if(id == R.id.backwardWeekButton){</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">            if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+<span class="fc" id="L111">                startOfWeek = startOfWeek.minusWeeks(1);</span>
+<span class="fc" id="L112">                endOfWeek = endOfWeek.minusWeeks(1);</span>
+<span class="fc" id="L113">                setShiftSchedule(startOfWeek.toString(), endOfWeek.toString());</span>
+            }
+
+        }
+<span class="fc" id="L117">    }</span>
+
+    private void displayShiftSchedule(List&lt;ShiftObject&gt; shiftArr) {
+
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">        if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+<span class="fc" id="L122">            shiftContainer.removeAllViews(); // clear screen</span>
+
+<span class="fc" id="L124">            LinearLayout hourColumn = new LinearLayout(this);</span>
+<span class="fc" id="L125">            hourColumn.setOrientation(LinearLayout.VERTICAL);</span>
+<span class="fc" id="L126">            hourColumn.setLayoutParams(new LinearLayout.LayoutParams(100,ViewGroup.LayoutParams.WRAP_CONTENT));</span>
+
+<span class="fc" id="L128">            TextView hourBuffer = new TextView(this);</span>
+<span class="fc" id="L129">            LinearLayout.LayoutParams hourBufferParams = new LinearLayout.LayoutParams(100,80);</span>
+<span class="fc" id="L130">            hourBuffer.setLayoutParams(hourBufferParams);</span>
+<span class="fc" id="L131">            hourColumn.addView(hourBuffer);</span>
+
+<span class="fc bfc" id="L133" title="All 2 branches covered.">            for (int i = 0; i &lt; 24; i++){</span>
+<span class="fc" id="L134">                TextView hour = new TextView(this);</span>
+<span class="fc" id="L135">                hour.setText(String.valueOf(i));</span>
+<span class="fc" id="L136">                LinearLayout.LayoutParams hourParams = new LinearLayout.LayoutParams(100,69);</span>
+<span class="fc" id="L137">                hourParams.setMargins(2,2,2,2);</span>
+<span class="fc" id="L138">                hour.setLayoutParams(hourParams);</span>
+<span class="fc" id="L139">                hourColumn.addView(hour);</span>
+
+            }
+<span class="fc" id="L142">            shiftContainer.addView(hourColumn);</span>
+
+
+
+<span class="fc bfc" id="L146" title="All 2 branches covered.">            for (ShiftObject shift : shiftArr) {</span>
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">                if (shift == null) continue;</span>
+<span class="fc" id="L148">                LinearLayout column = new LinearLayout(this);</span>
+<span class="fc" id="L149">                column.setOrientation(LinearLayout.VERTICAL);</span>
+
+<span class="fc" id="L151">                column.setLayoutParams(new LinearLayout.LayoutParams(150, ViewGroup.LayoutParams.WRAP_CONTENT,1f));</span>
+<span class="fc" id="L152">                shiftContainer.addView(column);</span>
+
+<span class="fc" id="L154">                TextView dayLabel = new TextView(this);</span>
+<span class="fc" id="L155">                dayLabel.setText(shift.getDay());</span>
+<span class="fc" id="L156">                dayLabel.setLayoutParams(new LinearLayout.LayoutParams(125, 69));</span>
+<span class="fc" id="L157">                column.addView(dayLabel);</span>
+
+<span class="fc" id="L159">                LocalTime currentTime = LocalTime.of(0, 0);</span>
+<span class="fc" id="L160">                LocalTime startTime = shift.getStartTime();</span>
+<span class="fc" id="L161">                LocalTime endTime = shift.getEndTime();</span>
+
+
+<span class="fc bfc" id="L164" title="All 2 branches covered.">                for (int i = 1; i &lt; 24; i++) {//hardcoded 24 for now</span>
+<span class="fc" id="L165">                    TextView hourBlock = new TextView(this);</span>
+
+<span class="fc" id="L167">                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(75, 75);</span>
+<span class="fc" id="L168">                    params.setMargins(2, 2, 2, 2);</span>
+<span class="fc" id="L169">                    hourBlock.setLayoutParams(params);</span>
+<span class="fc" id="L170">                    hourBlock.setBackgroundColor(Color.LTGRAY);</span>
+
+<span class="pc bpc" id="L172" title="2 of 4 branches missed.">                    if (startTime != null &amp;&amp; endTime != null) {</span>
+<span class="fc bfc" id="L173" title="All 4 branches covered.">                        if (!(currentTime.isBefore(startTime)) &amp;&amp; currentTime.isBefore(endTime)) {</span>
+<span class="fc" id="L174">                            hourBlock.setBackgroundColor(Color.parseColor(&quot;#4A0080&quot;));</span>
+                        }
+
+                    }
+<span class="fc" id="L178">                    currentTime = currentTime.plusHours(1);</span>
+<span class="fc" id="L179">                    column.addView(hourBlock);</span>
+
+
+                }
+<span class="fc" id="L183">            }</span>
+
+
+        }
+<span class="fc" id="L187">    }</span>
+
+    private void setShiftSchedule(String startOfWeekDate, String endOfWeekDate) {
+       //url += startOfWeekDate + &quot;to/&quot; + endOfWeekDate;
+<span class="fc" id="L191">        String setUrl = url + SessionManager.getUserId() +  &quot;/weekly-shifts/&quot; + startOfWeekDate;</span>
+
+<span class="fc" id="L193">        JsonArrayRequest jsonArrReq = new JsonArrayRequest(</span>
+                Request.Method.GET,  // HTTP request method (GET)
+                setUrl,      // URL of the JSON array API
+                null,                // Pass null as the request body since it's a GET request
+
+                // Response listener for handling successful response
+<span class="fc" id="L199">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+<span class="fc" id="L202">                        List&lt;ShiftObject&gt; shiftList = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L203">                        Log.d(&quot;Volley Response&quot;, response.toString());</span>
+
+                        // Loop through the JSON array and extract required fields
+<span class="fc bfc" id="L206" title="All 2 branches covered.">                        for (int i = 0; i &lt; response.length(); i++) {</span>
+                            try {
+<span class="fc" id="L208">                                JSONObject jsonObject = response.getJSONObject(i);</span>
+<span class="fc" id="L209">                                String startTime = jsonObject.optString(&quot;startTime&quot;, &quot;00:00:00&quot;);</span>
+<span class="fc" id="L210">                                String endTime = jsonObject.optString(&quot;endTime&quot;, &quot;00:00:00&quot;);</span>
+<span class="fc" id="L211">                                String day = jsonObject.optString(&quot;shiftDate&quot;, &quot;Unknown&quot;);   // Extract name</span>
+<span class="fc" id="L212">                                int duration = jsonObject.optInt(&quot;duration&quot;, 0);</span>
+
+
+
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">                                if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+                                    try {
+<span class="fc" id="L218">                                        LocalTime start = LocalTime.parse(startTime);</span>
+<span class="fc" id="L219">                                        LocalTime end = LocalTime.parse(endTime);</span>
+<span class="fc" id="L220">                                        shiftList.add(new ShiftObject(start, end, day, duration));</span>
+<span class="nc" id="L221">                                    } catch (DateTimeParseException e) {</span>
+<span class="nc" id="L222">                                        Log.e(&quot;ParseError&quot;, &quot;Time format invalid: &quot; + startTime);</span>
+<span class="fc" id="L223">                                    }</span>
+                                }
+
+<span class="nc" id="L226">                            } catch (JSONException e) {</span>
+<span class="nc" id="L227">                                e.printStackTrace(); // Handle JSON parsing errors</span>
+<span class="fc" id="L228">                            }</span>
+                        }
+<span class="fc" id="L230">                        displayShiftSchedule(shiftList);</span>
+
+
+
+<span class="fc" id="L234">                    }</span>
+                },
+
+                // Error listener for handling request failure
+<span class="fc" id="L238">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L241">                        Log.e(&quot;Volley Error&quot;, error.toString()); // Log error details</span>
+<span class="nc" id="L242">                    }</span>
+                }
+<span class="fc" id="L244">        ) {</span>
+            // Override getHeaders() if authentication headers are needed
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="fc" id="L248">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L249">                String token = getSharedPreferences(&quot;auth&quot;, MODE_PRIVATE)</span>
+<span class="fc" id="L250">                        .getString(&quot;token&quot;, &quot;&quot;);</span>
+<span class="fc" id="L251">                headers.put(&quot;Authorization&quot;, &quot;Bearer &quot; + SessionManager.getToken());</span>
+<span class="fc" id="L252">                return headers;</span>
+            }
+
+            // Override getParams() if you need to send request parameters
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L258">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+//                params.put(&quot;param1&quot;, &quot;value1&quot;); // Example parameter
+//                params.put(&quot;param2&quot;, &quot;value2&quot;); // Example parameter
+<span class="nc" id="L261">                return params;</span>
+            }
+        };
+
+        // Adding request to the Volley request queue for execution
+<span class="fc" id="L266">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsonArrReq);</span>
+<span class="fc" id="L267">    }</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

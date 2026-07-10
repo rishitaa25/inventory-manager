@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShipmentRequestMethods.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.shipments.services</a> &gt; <span class="el_source">ShipmentRequestMethods.java</span></div><h1>ShipmentRequestMethods.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.shipments.services;
+
+import android.content.Context;
+import android.util.Log;
+import android.widget.Toast;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+//import com.example.androidexample.ListItemObject;
+import com.example.androidexample.VolleySingleton;
+import com.example.androidexample.features.NetworkCallback;
+import com.example.androidexample.features.shipments.data.ShipmentRepository;
+import com.example.androidexample.features.shipments.model.ShipmentItemObject;
+import com.example.androidexample.features.shipments.model.ShipmentObject;
+import com.example.androidexample.features.user.data.SessionManager;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+<span class="nc" id="L34">public class ShipmentRequestMethods {</span>
+
+    /**
+     * The base url for the controller
+     */
+    private static final String BASE_URL =
+            &quot;http://coms-3090-013.class.las.iastate.edu:8080/shipment/&quot;;
+            //&quot;http://10.0.2.2:8080/&quot;;
+
+// --- SINGLE SHIPMENT REQUEST METHODS --- //
+
+    /**
+     * Makes a request to add a shipment to the specified shipment to the server
+     *
+     * @param context
+     * @param id the id of the Admin who cretaed the shipment request
+     * @param date
+     * @param callback
+     */
+    public static void addShipmentRequest(Context context, int id,  LocalDate date, List&lt;ShipmentItemObject&gt; items, NetworkCallback callback)
+    {
+
+<span class="nc" id="L56">        JSONObject requestBody = new JSONObject();</span>
+
+        try {
+<span class="nc" id="L59">            requestBody.put(&quot;id&quot;, id);</span>
+<span class="nc" id="L60">            requestBody.put(&quot;requestedDeliveryDate&quot;, date.toString());</span>
+
+<span class="nc" id="L62">            JSONArray itemsArray = new JSONArray();</span>
+
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            for (ShipmentItemObject item : items) {</span>
+<span class="nc" id="L65">                JSONObject obj = new JSONObject();</span>
+
+<span class="nc" id="L67">                obj.put(&quot;itemName&quot;, item.getItemName());</span>
+<span class="nc" id="L68">                obj.put(&quot;storageLocation&quot;, item.getStorageLocation());</span>
+<span class="nc" id="L69">                obj.put(&quot;quantity&quot;, item.getQuantity());</span>
+<span class="nc" id="L70">                obj.put(&quot;weight&quot;, item.getWeight());</span>
+<span class="nc" id="L71">                obj.put(&quot;storageType&quot;, item.getStorageType());</span>
+<span class="nc" id="L72">                itemsArray.put(obj);</span>
+<span class="nc" id="L73">            }</span>
+
+<span class="nc" id="L75">            requestBody.put(&quot;items&quot;, itemsArray);</span>
+<span class="nc" id="L76">            Log.d(&quot;SHIPMENT_REQUEST_BODY&quot;, requestBody.toString());</span>
+
+<span class="nc" id="L78">        } catch (JSONException e) {</span>
+<span class="nc" id="L79">            callback.onError(&quot;Invalid request format&quot;);</span>
+<span class="nc" id="L80">            return;</span>
+<span class="nc" id="L81">        }</span>
+
+<span class="nc" id="L83">        JsonObjectRequest request = new JsonObjectRequest(</span>
+                Request.Method.POST,
+                BASE_URL + &quot;add&quot;,
+                requestBody,
+
+
+                response -&gt; {
+<span class="nc" id="L90">                    Log.d(&quot;ADD_SHIPMENT_RESPONSE&quot;, response.toString());</span>
+                    try {
+<span class="nc" id="L92">                        int shipmentId = response.getInt(&quot;shipmentId&quot;);</span>
+<span class="nc" id="L93">                        callback.onSuccess(&quot;Shipment #&quot; + shipmentId + &quot; created successfully&quot;);</span>
+<span class="nc" id="L94">                    } catch (JSONException e) {</span>
+<span class="nc" id="L95">                        callback.onError(&quot;Failed to parse server response&quot;);</span>
+<span class="nc" id="L96">                    }</span>
+<span class="nc" id="L97">                },</span>
+
+
+                error -&gt; {
+<span class="nc" id="L101">                    Log.e(&quot;ADD_SHIPMENT_ERROR&quot;, error.toString());</span>
+
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                    if (error.networkResponse != null) {</span>
+<span class="nc" id="L104">                        Log.e(&quot;STATUS_CODE&quot;,</span>
+<span class="nc" id="L105">                                String.valueOf(error.networkResponse.statusCode));</span>
+                    }
+
+<span class="nc" id="L108">                    callback.onError(&quot;Shipment creation failed&quot;);</span>
+<span class="nc" id="L109">                }</span>
+<span class="nc" id="L110">        ) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L113">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                //Log.d(&quot;LOGOUT_TOKEN&quot;, SessionManager.getToken());
+<span class="nc" id="L115">                headers.put(&quot;Authorization&quot;, &quot;Bearer &quot; + SessionManager.getToken());</span>
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L117">                return headers;</span>
+            }
+        };
+
+<span class="nc" id="L121">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="nc" id="L122">    }</span>
+
+
+    /**
+     * Makes a request to delete a shipment from the specified shipment on the server
+     *
+     * @param context
+     * @param id
+     * @param callback
+     */
+    public static void deleteShipmentRequest(Context context, int id, NetworkCallback callback)
+    {
+<span class="nc" id="L134">        StringRequest request = new StringRequest(</span>
+                Request.Method.DELETE,
+                BASE_URL + id + &quot;/delete&quot;,
+
+                response -&gt; {
+<span class="nc" id="L139">                    Log.d(&quot;SHIPMENT_RAW_RESPONSE&quot;, response);</span>
+
+<span class="nc bnc" id="L141" title="All 2 branches missed.">                    if (response.equals(&quot;true&quot;)) {</span>
+<span class="nc" id="L142">                        callback.onSuccess(&quot;Shipment Removed&quot;);</span>
+                    } else {
+<span class="nc" id="L144">                        callback.onError(&quot;Shipment Removal Failed.&quot;);</span>
+                    }
+<span class="nc" id="L146">                },</span>
+
+                error -&gt; {
+<span class="nc" id="L149">                    Log.e(&quot;SHIPMENT_ERROR&quot;, error.toString());</span>
+
+<span class="nc bnc" id="L151" title="All 2 branches missed.">                    if (error.networkResponse != null) {</span>
+<span class="nc" id="L152">                        Log.e(&quot;SHIPMENT_STATUS_CODE&quot;,</span>
+<span class="nc" id="L153">                                String.valueOf(error.networkResponse.statusCode));</span>
+                    }
+<span class="nc" id="L155">                    callback.onError(&quot;Shipment Removal failed.&quot;);</span>
+<span class="nc" id="L156">                }</span>
+
+<span class="nc" id="L158">        ) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L161">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                //Log.d(&quot;LOGOUT_TOKEN&quot;, SessionManager.getToken());
+<span class="nc" id="L163">                headers.put(&quot;Authorization&quot;, &quot;Bearer &quot; + SessionManager.getToken());</span>
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L165">                return headers;</span>
+            }
+        };
+
+<span class="nc" id="L169">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="nc" id="L170">    }</span>
+
+    /**
+     * Makes a request to view a shipment from the specified shipment from the clientside shipment repository
+     *
+     * @param context
+     * @param id
+     * @param callback
+     */
+    public static void viewShipmentViaId(Context context, int id, NetworkCallback callback) {
+<span class="nc" id="L180">        List&lt;ShipmentObject&gt; shipments = ShipmentRepository.getShipments();</span>
+
+<span class="nc bnc" id="L182" title="All 4 branches missed.">        if (shipments == null || shipments.isEmpty()) {</span>
+<span class="nc" id="L183">            callback.onError(&quot;No shipments loaded&quot;);</span>
+<span class="nc" id="L184">            return;</span>
+        }
+
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        for (ShipmentObject shipment : shipments) {</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            if (shipment.getShipmentId() == id) {</span>
+<span class="nc" id="L189">                callback.onSuccess(shipment);</span>
+<span class="nc" id="L190">                return;</span>
+            }
+<span class="nc" id="L192">        }</span>
+
+<span class="nc" id="L194">        callback.onError(&quot;Shipment with ID &quot; + id + &quot; not found&quot;);</span>
+<span class="nc" id="L195">    }</span>
+
+    /**
+     * Makes a request to view a shipment from the specified shipment on the server
+     *
+     * @param context
+     * @param id
+     * @param callback
+     */
+    public static void viewShipmentViaIdRequest(Context context, int id, NetworkCallback callback) {
+
+<span class="nc" id="L206">            Log.d(&quot;LOGIN&quot;, &quot;Preparing request...&quot;);</span>
+
+<span class="nc" id="L208">            JsonObjectRequest request = new JsonObjectRequest(</span>
+                    Request.Method.GET,
+                    BASE_URL + &quot;find-by/id/&quot; + id,
+                    null,
+
+                    response -&gt; {
+<span class="nc" id="L214">                        Log.d(&quot;SHIPMENT_RAW_RESPONSE&quot;, response.toString());</span>
+
+                        try {
+<span class="nc" id="L217">                            Integer shipmentId = response.getInt(&quot;shipmentId&quot;);</span>
+<span class="nc" id="L218">                            String deliveryDateStr = response.getString(&quot;arrivalDate&quot;);</span>
+<span class="nc" id="L219">                            LocalDate deliveryDate = LocalDate.parse(deliveryDateStr);</span>
+<span class="nc" id="L220">                            Boolean arrived = response.getBoolean(&quot;arrived&quot;);</span>
+<span class="nc" id="L221">                            Boolean offloaded = response.getBoolean(&quot;offloaded&quot;);</span>
+<span class="nc" id="L222">                            String creationAdmin = response.optString(&quot;creationAdmin&quot;);</span>
+<span class="nc" id="L223">                            JSONArray itemsArray = response.getJSONArray(&quot;items&quot;);</span>
+
+<span class="nc" id="L225">                            Log.d(&quot;SHIPMENT_ITEMS1&quot;, itemsArray.toString());</span>
+
+
+<span class="nc" id="L228">                            List&lt;ShipmentItemObject&gt; items = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L230" title="All 2 branches missed.">                            for (int j = 0; j &lt; itemsArray.length(); j++) {</span>
+
+<span class="nc" id="L232">                                Log.d(&quot;SHIPMENT_ITEM_OBJECT&quot;, itemsArray.getJSONObject(j).toString());</span>
+
+<span class="nc" id="L234">                                JSONObject itemJson = itemsArray.getJSONObject(j);</span>
+
+<span class="nc" id="L236">                                Log.d(&quot;SHIPMENT_ITEM_OBJECT2&quot;, itemJson.toString());</span>
+
+<span class="nc" id="L238">                                ShipmentItemObject item = new ShipmentItemObject(   itemJson.getInt(&quot;skuId&quot;),</span>
+<span class="nc" id="L239">                                        itemJson.getString(&quot;ItemName&quot;),</span>
+<span class="nc" id="L240">                                        itemJson.getInt(&quot;quantity&quot;),</span>
+<span class="nc" id="L241">                                        itemJson.optString(&quot;description&quot;, &quot;N/A&quot;));</span>
+
+<span class="nc" id="L243">                                Log.d(&quot;SHIPMENT_ITEM&quot;, item.toString());</span>
+
+<span class="nc" id="L245">                                items.add(item);</span>
+                            }
+
+                            //Log.d(&quot;SHIPMENT_ITEMS2&quot;, items.toString());
+
+<span class="nc" id="L250">                            ShipmentObject shipment = new ShipmentObject(shipmentId, deliveryDate, arrived, offloaded);</span>
+
+<span class="nc" id="L252">                            callback.onSuccess(shipment);</span>
+<span class="nc" id="L253">                            Log.d(&quot;SHIPMENT_SUCCESS&quot;, &quot;Loading Shipment Successful&quot;);</span>
+
+<span class="nc" id="L255">                        } catch (JSONException e) {</span>
+<span class="nc" id="L256">                            Log.e(&quot;SHIPMENT_PARSE_ERROR&quot;, &quot;Response parsing failed&quot;, e);</span>
+<span class="nc" id="L257">                            callback.onError(&quot;Invalid server response&quot;);</span>
+<span class="nc" id="L258">                        }</span>
+<span class="nc" id="L259">                    },</span>
+
+                    error -&gt; {
+<span class="nc" id="L262">                        Log.e(&quot;SHIPMENT_ERROR&quot;, error.toString());</span>
+
+<span class="nc bnc" id="L264" title="All 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="nc" id="L265">                            Log.e(&quot;SCHEDULE_STATUS_CODE&quot;,</span>
+<span class="nc" id="L266">                                    String.valueOf(error.networkResponse.statusCode));</span>
+                        }
+
+<span class="nc" id="L269">                        callback.onError(&quot;Loading Shipment failed.&quot;);</span>
+<span class="nc" id="L270">                    }</span>
+<span class="nc" id="L271">            ) {</span>
+                @Override
+                public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L274">                    Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                    //Log.d(&quot;LOGOUT_TOKEN&quot;, SessionManager.getToken());
+<span class="nc" id="L276">                    headers.put(&quot;Authorization&quot;, &quot;Bearer &quot; + SessionManager.getToken());</span>
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L278">                    return headers;</span>
+                }
+            };
+
+<span class="nc" id="L282">            VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="nc" id="L283">        }</span>
+
+    /**
+     * Makes a request to update a shipment from the specified shipment on the server
+     *
+     * @param context
+     * @param id
+     * @param arrived
+     * @param date
+     * @param callback
+     */
+    public static void updateShipmentRequest(Context context, int id, Boolean arrived, Boolean offloaded, LocalDate date, NetworkCallback callback)
+    {
+
+<span class="nc" id="L297">        Log.d(&quot;SHIPMENT&quot;, &quot;Preparing request...&quot;);</span>
+
+        JSONObject requestBody;
+
+        try {
+<span class="nc" id="L302">            requestBody = new JSONObject();</span>
+<span class="nc" id="L303">            requestBody.put(&quot;shipmentId&quot;, id);</span>
+<span class="nc" id="L304">            requestBody.put(&quot;arrived&quot;, arrived);</span>
+<span class="nc" id="L305">            requestBody.put(&quot;offloaded&quot;, offloaded);</span>
+<span class="nc" id="L306">            requestBody.put(&quot;arrivalDate&quot;, date.toString());</span>
+
+<span class="nc" id="L308">            Log.d(&quot;SHIPMENT_REQUEST_BODY&quot;, requestBody.toString());</span>
+
+<span class="nc" id="L310">        } catch (JSONException e) {</span>
+<span class="nc" id="L311">            Log.e(&quot;SHIPMENT&quot;, &quot;Invalid JSON&quot;, e);</span>
+<span class="nc" id="L312">            Toast.makeText(context, &quot;Invalid JSON format&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L313">            return;</span>
+<span class="nc" id="L314">        }</span>
+
+<span class="nc" id="L316">        StringRequest request = new StringRequest(</span>
+                Request.Method.PUT,
+                BASE_URL + &quot;update&quot;,
+
+                response -&gt; {
+<span class="nc" id="L321">                    Log.d(&quot;UPDATE_RAW_RESPONSE&quot;, response);</span>
+
+<span class="nc bnc" id="L323" title="All 2 branches missed.">                    if (response.equals(&quot;true&quot;)) {</span>
+<span class="nc" id="L324">                        callback.onSuccess(&quot;Shipment Updated&quot;);</span>
+                    } else {
+<span class="nc" id="L326">                        callback.onError(&quot;Shipment update failed&quot;);</span>
+                    }
+<span class="nc" id="L328">                },</span>
+
+                error -&gt; {
+<span class="nc" id="L331">                    Log.e(&quot;SHIPMENT_ERROR&quot;, error.toString());</span>
+
+<span class="nc bnc" id="L333" title="All 2 branches missed.">                    if (error.networkResponse != null) {</span>
+<span class="nc" id="L334">                        Log.e(&quot;SHIPMENT_STATUS_CODE&quot;,</span>
+<span class="nc" id="L335">                                String.valueOf(error.networkResponse.statusCode));</span>
+                    }
+
+<span class="nc" id="L338">                    callback.onError(&quot;Shipment update failed.&quot;);</span>
+<span class="nc" id="L339">                }</span>
+<span class="nc" id="L340">        ) {</span>
+                @Override
+                public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L343">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                //Log.d(&quot;LOGOUT_TOKEN&quot;, SessionManager.getToken());
+<span class="nc" id="L345">                headers.put(&quot;Authorization&quot;, &quot;Bearer &quot; + SessionManager.getToken());</span>
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L347">                return headers;</span>
+            }
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L351">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                try {
+<span class="nc bnc" id="L357" title="All 2 branches missed.">                    return requestBody == null ? null : requestBody.toString().getBytes(&quot;utf-8&quot;);</span>
+<span class="nc" id="L358">                } catch (UnsupportedEncodingException uee) {</span>
+<span class="nc" id="L359">                    VolleyLog.d(&quot;Unsupported Encoding while trying to get the bytes of %s using %s&quot;, requestBody, &quot;utf-8&quot;);</span>
+<span class="nc" id="L360">                    return null;</span>
+                }
+            }
+        };
+
+<span class="nc" id="L365">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="nc" id="L366">    }</span>
+
+
+//--- MULTIPLE SHIPMENT REQUEST METHODS ---
+
+    /**
+     * Makes a request to update multiple shipments from the specified shipment on the server
+     */
+    public static void viewShipmentsRequest(Context context, NetworkCallback callback)
+    {
+<span class="nc" id="L376">        JsonArrayRequest jsonArrReq = new JsonArrayRequest(</span>
+                Request.Method.GET,  // HTTP request method (GET)
+                BASE_URL + &quot;find/all/dto&quot;,      // URL of the JSON array API
+                null,                // Pass null as the request body since it's a GET request
+
+                // Response listener for handling successful response
+<span class="nc" id="L382">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+<span class="nc" id="L385">                        Log.d(&quot;SHIPMENT_RAW_RESPONSE&quot;, response.toString());</span>
+
+<span class="nc" id="L387">                        List&lt;ShipmentObject&gt; shipmentList = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L389" title="All 2 branches missed.">                        for (int i = 0; i &lt; response.length(); i++) {</span>
+                            try {
+<span class="nc" id="L391">                                JSONObject jsonObject = response.getJSONObject(i);</span>
+
+<span class="nc" id="L393">                                int shipmentId = jsonObject.getInt(&quot;shipmentId&quot;);</span>
+<span class="nc" id="L394">                                LocalDate deliveryDate = LocalDate.parse(jsonObject.getString(&quot;arrivalDate&quot;));</span>
+<span class="nc" id="L395">                                boolean arrived = jsonObject.getBoolean(&quot;arrived&quot;);</span>
+<span class="nc" id="L396">                                boolean offloaded = jsonObject.getBoolean(&quot;offloaded&quot;);</span>
+<span class="nc" id="L397">                                JSONArray itemsArray = jsonObject.getJSONArray(&quot;items&quot;);</span>
+<span class="nc" id="L398">                                String creationAdmin = jsonObject.optString(&quot;creationAdmin&quot;);</span>
+
+
+<span class="nc" id="L401">                                Log.d(&quot;SHIPMENT_ITEMS1&quot;, itemsArray.toString());</span>
+
+
+<span class="nc" id="L404">                                List&lt;ShipmentItemObject&gt; items = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L406" title="All 2 branches missed.">                                for (int j = 0; j &lt; itemsArray.length(); j++) {</span>
+
+<span class="nc" id="L408">                                    Log.d(&quot;SHIPMENT_ITEM_OBJECT&quot;, itemsArray.getJSONObject(j).toString());</span>
+
+<span class="nc" id="L410">                                    JSONObject itemJson = itemsArray.getJSONObject(j);</span>
+
+<span class="nc" id="L412">                                    Log.d(&quot;SHIPMENT_ITEM_OBJECT2&quot;, itemJson.toString());</span>
+
+<span class="nc" id="L414">                                    ShipmentItemObject item = new ShipmentItemObject(   itemJson.getInt(&quot;skuId&quot;),</span>
+<span class="nc" id="L415">                                                                                        itemJson.getString(&quot;itemName&quot;),</span>
+<span class="nc" id="L416">                                                                                        itemJson.getInt(&quot;quantity&quot;),</span>
+<span class="nc" id="L417">                                                                                        itemJson.optString(&quot;shippingCompanyName&quot;, &quot;N/A&quot;));</span>
+
+<span class="nc" id="L419">                                    Log.d(&quot;SHIPMENT_ITEM&quot;, item.toString());</span>
+
+<span class="nc" id="L421">                                    items.add(item);</span>
+                                }
+
+<span class="nc" id="L424">                                Log.d(&quot;SHIPMENT_ITEMS2&quot;, items.toString());</span>
+
+<span class="nc" id="L426">                                ShipmentObject shipment = new ShipmentObject(shipmentId, deliveryDate, arrived, offloaded, items, creationAdmin);</span>
+<span class="nc" id="L427">                                shipmentList.add(shipment);</span>
+
+<span class="nc" id="L429">                            } catch (JSONException e) {</span>
+<span class="nc" id="L430">                                Log.e(&quot;SHIPMENT_PARSE_ERROR&quot;, &quot;Response parsing failed&quot;, e);</span>
+<span class="nc" id="L431">                            }</span>
+                        }
+
+<span class="nc" id="L434">                        callback.onSuccess(shipmentList);</span>
+<span class="nc" id="L435">                        Log.d(&quot;SHIPMENT_SUCCESS&quot;, &quot;Loading Shipments Successful&quot;);</span>
+<span class="nc" id="L436">                    }</span>
+                },
+                // Error listener for handling request failure
+<span class="nc" id="L439">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L442">                        Log.e(&quot;Volley Error&quot;, error.toString()); // Log error details</span>
+<span class="nc" id="L443">                    }</span>
+                }
+<span class="nc" id="L445">        ) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L448">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                //Log.d(&quot;LOGOUT_TOKEN&quot;, SessionManager.getToken());
+<span class="nc" id="L450">                headers.put(&quot;Authorization&quot;, &quot;Bearer &quot; + SessionManager.getToken());</span>
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L452">                return headers;</span>
+            }
+
+            // Override getParams() if you need to send request parameters
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L458">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+//                params.put(&quot;param1&quot;, &quot;value1&quot;); // Example parameter
+//                params.put(&quot;param2&quot;, &quot;value2&quot;); // Example parameter
+<span class="nc" id="L461">                return params;</span>
+            }
+        };
+
+        // Adding request to the Volley request queue for execution
+<span class="nc" id="L466">        VolleySingleton.getInstance(context).addToRequestQueue(jsonArrReq);</span>
+<span class="nc" id="L467">    }</span>
+
+    /**
+     * Makes a request to add multiple shipments to the server
+     */
+    public static void addShipmentsRequest()
+    {
+        // TODO: add shipments request
+<span class="nc" id="L475">    }</span>
+
+    /**
+     * Makes a request to delete multiple shipments to the server
+     */
+    public static void deleteAllShipmentsRequest()
+    {
+        // TODO: delete shipments request
+<span class="nc" id="L483">    }</span>
+
+    /**
+     * Makes a request to for a csv file of all shipments
+     */
+    public static void downloadShipmentsRequest(Context context, NetworkCallback callback)
+    {
+<span class="nc" id="L490">        Log.d(&quot;CSV&quot;, &quot;Preparing request...&quot;);</span>
+
+<span class="nc" id="L492">        StringRequest request = new StringRequest(</span>
+                Request.Method.GET,
+                &quot;http://coms-3090-013.class.las.iastate.edu:8080/export/shipments&quot;,
+
+                response -&gt; {
+<span class="nc" id="L497">                    Log.d(&quot;CSV_RESPONSE&quot;, response);</span>
+
+<span class="nc" id="L499">                    callback.onSuccess(response);</span>
+<span class="nc" id="L500">                },</span>
+
+                error -&gt; {
+<span class="nc" id="L503">                    Log.e(&quot;CSV_ERROR&quot;, error.toString());</span>
+
+<span class="nc bnc" id="L505" title="All 2 branches missed.">                    if (error.networkResponse != null) {</span>
+<span class="nc" id="L506">                        Log.e(&quot;STATUS_CODE&quot;,</span>
+<span class="nc" id="L507">                                String.valueOf(error.networkResponse.statusCode));</span>
+                    }
+
+<span class="nc" id="L510">                    callback.onError(&quot;Failed to download CSV&quot;);</span>
+<span class="nc" id="L511">                }</span>
+        );
+
+<span class="nc" id="L514">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="nc" id="L515">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

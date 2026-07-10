@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminChatView.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.chats</a> &gt; <span class="el_source">AdminChatView.java</span></div><h1>AdminChatView.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.chats;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+import com.example.androidexample.features.navigation.ui.MainActivity;
+import com.example.androidexample.R;
+import com.example.androidexample.VolleySingleton;
+import com.example.androidexample.features.user.data.SessionManager;
+import com.google.android.material.textfield.TextInputEditText;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
+
+<span class="fc" id="L33">public class AdminChatView extends AppCompatActivity implements View.OnClickListener {</span>
+
+    // UI components
+    private Button createRoomButton, addEmployeeButton;
+    private TextView errorMesaggeBox;
+    private TextInputEditText employeeIdBox, groupIDBox, roomNameBox;
+    private ImageView profile, menu;
+    private static final String URL_CREATE_GC = &quot;http://coms-3090-013.class.las.iastate.edu:8080/groupchat/create&quot;;
+    private static final String URL_ADD_EMPLOYEE = &quot;http://coms-3090-013.class.las.iastate.edu:8080/groupchat/addMember&quot;;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L45">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L46">        setContentView(R.layout.activity_manager_chat_view);</span>
+
+<span class="fc" id="L48">        createRoomButton = findViewById(R.id.createRoomButton);</span>
+<span class="fc" id="L49">        addEmployeeButton = findViewById(R.id.addEmployeeButton);</span>
+
+<span class="fc" id="L51">        employeeIdBox = findViewById(R.id.employeeIdBox);</span>
+<span class="fc" id="L52">        groupIDBox = findViewById(R.id.groupIDBox);</span>
+<span class="fc" id="L53">        roomNameBox = findViewById(R.id.roomNameBox);</span>
+
+
+<span class="fc" id="L56">        profile = findViewById(R.id.profile_icon);</span>
+<span class="fc" id="L57">        menu = findViewById(R.id.menu_icon);</span>
+
+        //banner setup
+<span class="fc" id="L60">        profile = findViewById(R.id.profile_icon);</span>
+<span class="fc" id="L61">        menu = findViewById(R.id.menu_icon);</span>
+<span class="fc" id="L62">        BannerHelper.setupBanner(this, profile, menu);</span>
+
+
+<span class="fc" id="L65">        errorMesaggeBox = findViewById(R.id.errorMessageView);</span>
+
+        /* button click listeners */
+<span class="fc" id="L68">        addEmployeeButton.setOnClickListener(this);</span>
+<span class="fc" id="L69">        createRoomButton.setOnClickListener(this);</span>
+
+
+
+
+
+<span class="fc" id="L75">    }</span>
+
+    @Override
+    public void onClick(View v) {
+<span class="nc" id="L79">        int id = v.getId();</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (id == R.id.createRoomButton) {</span>
+<span class="nc" id="L81">            String roomName = String.valueOf(roomNameBox.getText());</span>
+<span class="nc" id="L82">            int adminId = SessionManager.getUserId();</span>
+
+            try {
+
+<span class="nc" id="L86">                JSONObject jsonBody = new JSONObject();</span>
+
+<span class="nc" id="L88">                jsonBody.put(&quot;roomName&quot;, roomName);</span>
+<span class="nc" id="L89">                jsonBody.put(&quot;adminId&quot;, adminId);</span>
+
+<span class="nc" id="L91">                postCreateGroupChat(jsonBody);</span>
+
+<span class="nc" id="L93">            } catch (JSONException e) {</span>
+<span class="nc" id="L94">                e.printStackTrace();</span>
+<span class="nc" id="L95">            }</span>
+
+
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        } else if (id == R.id.addEmployeeButton) {</span>
+<span class="nc" id="L99">            String groupId = String.valueOf(groupIDBox.getText());</span>
+<span class="nc" id="L100">            String employeeIdStr = String.valueOf(employeeIdBox.getText());</span>
+
+            try {
+<span class="nc" id="L103">                int employeeId = Integer.parseInt(employeeIdStr);</span>
+<span class="nc" id="L104">                JSONObject jsonBody = new JSONObject();</span>
+
+<span class="nc" id="L106">                jsonBody.put(&quot;groupId&quot;, groupId);</span>
+<span class="nc" id="L107">                jsonBody.put(&quot;employeeId&quot;, employeeId);</span>
+
+<span class="nc" id="L109">                postAddMemberToGc(jsonBody);</span>
+
+<span class="nc" id="L111">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L112">                errorMesaggeBox.setText(&quot;Invalid Employee ID: must be a number&quot;);</span>
+<span class="nc" id="L113">                Log.e(&quot;AdminChatView&quot;, &quot;Invalid employee ID: &quot; + employeeIdStr);</span>
+<span class="nc" id="L114">            } catch (JSONException e) {</span>
+<span class="nc" id="L115">                e.printStackTrace();</span>
+<span class="nc" id="L116">            }</span>
+
+
+        }
+<span class="nc" id="L120">    }</span>
+
+
+    private void postCreateGroupChat(JSONObject jsonBody) {
+
+<span class="nc" id="L125">        final String mRequestBody = jsonBody.toString();</span>
+
+<span class="nc" id="L127">        StringRequest stringRequest = new StringRequest(</span>
+                Request.Method.POST,
+                URL_CREATE_GC,
+<span class="nc" id="L130">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // Handle the successful response here
+<span class="nc" id="L134">                        Log.d(&quot;Item Created Successfully&quot;, response);</span>
+<span class="nc" id="L135">                        errorMesaggeBox.setText(response.toString());</span>
+                        //startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+<span class="nc" id="L137">                    }</span>
+                },
+<span class="nc" id="L139">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="nc" id="L143">                            String body = new String(error.networkResponse.data);</span>
+<span class="nc" id="L144">                            Log.e(&quot;Error&quot;, &quot;Status: &quot; + error.networkResponse.statusCode + &quot; Body: &quot; + body);</span>
+<span class="nc" id="L145">                            errorMesaggeBox.setText(&quot;Error &quot; + error.networkResponse.statusCode + &quot;: &quot; + body);</span>
+<span class="nc" id="L146">                        } else {</span>
+<span class="nc" id="L147">                            errorMesaggeBox.setText(&quot;Error: &quot; + error.toString());</span>
+                        }
+<span class="nc" id="L149">                    }</span>
+                }
+<span class="nc" id="L151">        ) {</span>
+
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L155">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                try {
+<span class="nc bnc" id="L161" title="All 2 branches missed.">                    return mRequestBody == null ? null : mRequestBody.getBytes(&quot;utf-8&quot;);</span>
+<span class="nc" id="L162">                } catch (UnsupportedEncodingException uee) {</span>
+<span class="nc" id="L163">                    VolleyLog.d(&quot;Unsupported Encoding while trying to get the bytes of %s using %s&quot;, mRequestBody, &quot;utf-8&quot;);</span>
+<span class="nc" id="L164">                    return null;</span>
+                }
+            }
+
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L170">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L171">                String token = getSharedPreferences(&quot;auth&quot;, MODE_PRIVATE)</span>
+<span class="nc" id="L172">                        .getString(&quot;token&quot;, &quot;&quot;);</span>
+<span class="nc" id="L173">                headers.put(&quot;Authorization&quot;, &quot;Bearer &quot; + SessionManager.getToken());</span>
+<span class="nc" id="L174">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L179">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+//                params.put(&quot;param1&quot;, &quot;value1&quot;);
+//                params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L182">                return params;</span>
+            }
+        };
+
+        // Adding request to request queue
+<span class="nc" id="L187">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L188">    }</span>
+
+    private void postAddMemberToGc(JSONObject jsonBody) {
+
+<span class="nc" id="L192">        final String mRequestBody = jsonBody.toString();</span>
+
+<span class="nc" id="L194">        StringRequest stringRequest = new StringRequest(</span>
+                Request.Method.POST,
+                URL_ADD_EMPLOYEE,
+<span class="nc" id="L197">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // Handle the successful response here
+<span class="nc" id="L201">                        Log.d(&quot;Item Created Successfully&quot;, response);</span>
+<span class="nc" id="L202">                        errorMesaggeBox.setText(response.toString());</span>
+                        //startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+<span class="nc" id="L204">                    }</span>
+                },
+<span class="nc" id="L206">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc bnc" id="L209" title="All 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="nc" id="L210">                            String body = new String(error.networkResponse.data);</span>
+<span class="nc" id="L211">                            Log.e(&quot;Error&quot;, &quot;Status: &quot; + error.networkResponse.statusCode + &quot; Body: &quot; + body);</span>
+<span class="nc" id="L212">                            errorMesaggeBox.setText(&quot;Error &quot; + error.networkResponse.statusCode + &quot;: &quot; + body);</span>
+<span class="nc" id="L213">                        } else {</span>
+<span class="nc" id="L214">                            errorMesaggeBox.setText(&quot;Error: &quot; + error.toString());</span>
+                        }
+<span class="nc" id="L216">                    }</span>
+                }
+<span class="nc" id="L218">        ) {</span>
+
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L222">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                try {
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                    return mRequestBody == null ? null : mRequestBody.getBytes(&quot;utf-8&quot;);</span>
+<span class="nc" id="L229">                } catch (UnsupportedEncodingException uee) {</span>
+<span class="nc" id="L230">                    VolleyLog.d(&quot;Unsupported Encoding while trying to get the bytes of %s using %s&quot;, mRequestBody, &quot;utf-8&quot;);</span>
+<span class="nc" id="L231">                    return null;</span>
+                }
+            }
+
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L237">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L238">                String token = getSharedPreferences(&quot;auth&quot;, MODE_PRIVATE)</span>
+<span class="nc" id="L239">                        .getString(&quot;token&quot;, &quot;&quot;);</span>
+<span class="nc" id="L240">                headers.put(&quot;Authorization&quot;, &quot;Bearer &quot; + SessionManager.getToken());</span>
+<span class="nc" id="L241">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L246">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+//                params.put(&quot;param1&quot;, &quot;value1&quot;);
+//                params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L249">                return params;</span>
+            }
+        };
+
+        // Adding request to request queue
+<span class="nc" id="L254">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L255">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

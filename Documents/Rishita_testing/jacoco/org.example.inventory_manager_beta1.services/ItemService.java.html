@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ItemService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.services</a> &gt; <span class="el_source">ItemService.java</span></div><h1>ItemService.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.services;
+
+import org.example.inventory_manager_beta1.DTO.Items.Add.AddItemRequest;
+import org.example.inventory_manager_beta1.DTO.Items.Add.AddItemResponse;
+import org.example.inventory_manager_beta1.DTO.Items.Search.SearchItemResponse;
+import org.example.inventory_manager_beta1.DTO.Items.Update.UpdateItemRequest;
+import org.example.inventory_manager_beta1.DTO.Items.Update.UpdateItemResponse;
+import org.example.inventory_manager_beta1.DataEnums.StorageType;
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.IllegalActionException;
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.ItemNotFoundException;
+import org.example.inventory_manager_beta1.entities.Item;
+import org.example.inventory_manager_beta1.entities.Shipment;
+import org.example.inventory_manager_beta1.entities.ShippingCompany;
+import org.example.inventory_manager_beta1.repositories.ItemRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+
+/**
+ * A robust service class to handle all the different logic and search methods relating
+ * to the Item class. It is complete with all the ItemRepository search methods
+ * defined, and it handles every Item related logic method with included custom error handling
+ */
+@Service
+public class ItemService {
+    /**
+     * The auto-injected ItemRepository for handling custom searches
+     */
+    @Autowired
+    private final ItemRepository itemRepository;
+
+    /**
+     * The auto-injected ShippingCompanyService for accessing ShippingCompany methods
+     */
+    @Autowired
+    private ShippingCompanyService shippingCompanyService;
+
+    /**
+     * INIT: Used for initializing the itemRepository and shippingCompanyRepository
+     * for custom database searches
+     * @param itemRepository
+     *  The repository containing the custom Item search methods
+     */
+<span class="fc" id="L46">    public ItemService(ItemRepository itemRepository) {this.itemRepository = itemRepository;}</span>
+
+    /*======================================================Search function implementation======================================================*/
+
+    /**
+     * SEARCH: A search method for finding an Item using its
+     * identification number
+     * @param id
+     *  The identification number of the Item being searched for
+     * @return
+     *  The Item with the matching ID number if it exists
+     * @throws ItemNotFoundException
+     *  Custom NotFound exception if the Item ID search returns null
+     */
+    public Item findById(Integer id) {
+<span class="nc" id="L61">        return itemRepository.findById(id)</span>
+<span class="nc" id="L62">                .orElseThrow(() -&gt; new ItemNotFoundException(&quot;Item with ID: &quot; + id + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding details of an Item
+     * using its identification number
+     * @param id
+     *  The identification number of the Item being searched for
+     * @return
+     *  Details about the Item with the matching ID number
+     * @throws ItemNotFoundException
+     *  Custom NotFound exception if the Item ID search returns null
+     */
+    public SearchItemResponse findDetailsById(Integer id) {
+<span class="nc" id="L76">        Item searchItem = findById(id);</span>
+<span class="nc" id="L77">        return new SearchItemResponse(</span>
+<span class="nc" id="L78">                searchItem.getSkuId(),</span>
+<span class="nc" id="L79">                searchItem.getItemName(),</span>
+<span class="nc" id="L80">                searchItem.getStorageLocation(),</span>
+<span class="nc" id="L81">                searchItem.getQuantity(),</span>
+<span class="nc" id="L82">                searchItem.getWeight(),</span>
+<span class="nc" id="L83">                searchItem.getStorageType(),</span>
+<span class="nc" id="L84">                searchItem.getArrivalDate(),</span>
+<span class="nc" id="L85">                Optional.ofNullable(searchItem.getShipment()).map(Shipment::getShipmentId),</span>
+<span class="nc" id="L86">                Optional.ofNullable(searchItem.getShippingCompany()).map(ShippingCompany::getShippingCompanyName)</span>
+        );
+    }
+
+    /**
+     * A search method that finds all items from the Items table
+     * @return
+     *  A list of all Items currently in the database
+     */
+<span class="nc" id="L95">    public List&lt;Item&gt; findAll() {return itemRepository.findAll();}</span>
+
+    /**
+     * A search method that finds an item by name
+     * @param itemName
+     *  The name of the item
+     * @return
+     *  The item with the corresponding name
+     */
+<span class="nc" id="L104">    public List&lt;Item&gt; findByItemName(String itemName) {return itemRepository.findByItemName(itemName);}</span>
+
+    /**
+     * A search method that finds an item by skuId
+     * @param skuId
+     *  the skuId of the item
+     * @return
+     *  The item with the corresponding skuId
+     */
+    public Item findBySKU(Integer skuId) {
+<span class="nc" id="L114">        return itemRepository.findById(skuId)</span>
+<span class="nc" id="L115">                .orElseThrow(() -&gt; new ItemNotFoundException(&quot;Item with SKU: &quot; + skuId + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * A search method that finds all items that are stocked at a certain quantity or higher
+     * @param quantity
+     *  The minimum quantity an item needs to have
+     * @return
+     *  A list of all items that have the minimum quantity or higher
+     */
+<span class="nc" id="L125">    public List&lt;Item&gt; findByQuantity(Integer quantity) {return itemRepository.findByQuantityGreaterThanEqual(quantity);}</span>
+
+    /**
+     * A search method that finds all items that are stocked at a certain weight or higher
+      * @param weight
+     *  The minimum weight, in lbs, an item needs to have
+     * @return
+     *  A list of all items that have the minimum weight or higher
+     */
+<span class="nc" id="L134">    public List&lt;Item&gt; findByWeight(Double weight) {return itemRepository.findByWeightGreaterThanEqual(weight);}</span>
+
+    /**
+     * A search method that finds all items of a certain storage type
+     * @param storageType
+     *  The storage type of the item
+     * @return
+     *  A list of all items with that storage type
+     */
+<span class="nc" id="L143">    public List&lt;Item&gt; findByStorageType(StorageType storageType) {return itemRepository.findByStorageType(storageType);}</span>
+
+    /*======================================================Logic function implementation======================================================*/
+
+    /**
+     * A logic method that saves an Item to the database
+     * @param item
+     *  The Item being saved
+     */
+<span class="nc" id="L152">    public void saveItem(Item item) {itemRepository.save(item);}</span>
+
+    /**
+     * A logic method that adds a new Item to the Items table
+     * @param addItemRequest
+     *  The DTO containing the Item information
+     */
+    public AddItemResponse addNewItem(AddItemRequest addItemRequest) {
+<span class="nc" id="L160">        Random random = new Random();</span>
+<span class="nc" id="L161">        List&lt;ShippingCompany&gt; companies = shippingCompanyService.findAll();</span>
+<span class="nc" id="L162">        Item item = new Item(addItemRequest.getItemName(), addItemRequest.getDescription(), addItemRequest.getStorageLocation(), addItemRequest.getQuantity(), addItemRequest.getWeight(), addItemRequest.getStorageType(), addItemRequest.getArrivalDate());</span>
+<span class="nc" id="L163">        item.setShippingCompany(companies.get(random.nextInt(companies.size())));</span>
+<span class="nc" id="L164">        itemRepository.save(item);</span>
+<span class="nc" id="L165">        return new AddItemResponse(item, item.getItemName(), item.getQuantity());</span>
+    }
+
+    /**
+     * A logic method that updates an existing Item's information
+     * @param updateItemRequest
+     *  The DTO containing the new information for the Item
+     * @return
+     *  A DTO containing a status message
+     */
+    public UpdateItemResponse updateItem(UpdateItemRequest updateItemRequest) {
+<span class="nc" id="L176">        Item updateItem = findBySKU(updateItemRequest.getItemSKU());</span>
+        //Only updating new fields
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (updateItemRequest.getItemName() != null)</span>
+<span class="nc" id="L179">            updateItem.setItemName(updateItemRequest.getItemName());</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (updateItemRequest.getQuantity() != null)</span>
+<span class="nc" id="L181">            updateItem.setQuantity(updateItemRequest.getQuantity());</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">        if (updateItemRequest.getStorageLocation() != null)</span>
+<span class="nc" id="L183">            updateItem.setStorageLocation(updateItemRequest.getStorageLocation());</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">        if (updateItemRequest.getWeight() != null)</span>
+<span class="nc" id="L185">            updateItem.setWeight(updateItemRequest.getWeight());</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        if (updateItemRequest.getStorageType() != null)</span>
+<span class="nc" id="L187">            updateItem.setStorageType(updateItemRequest.getStorageType());</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">        if (updateItemRequest.getArrivalDate() != null)</span>
+<span class="nc" id="L189">            updateItem.setArrivalDate(updateItemRequest.getArrivalDate());</span>
+
+<span class="nc" id="L191">        itemRepository.save(updateItem);</span>
+<span class="nc" id="L192">        return new UpdateItemResponse(&quot;Successfully updated information about Item: &quot; + updateItem.getItemName());</span>
+    }
+
+    /**
+     * A method to increase the quantity of an item in the Items table
+     * @param itemSKU
+     *  The item to increase the quantity of
+     * @param quantity
+     *  The amount to increase it by
+     * @return
+     *  A status message containing the Item's new quantity
+     */
+    public String increaseItemQuantity(Integer itemSKU, int quantity) {
+<span class="nc" id="L205">        Item item = findById(itemSKU);</span>
+<span class="nc" id="L206">        item.setQuantity(item.getQuantity() + quantity);</span>
+<span class="nc" id="L207">        itemRepository.save(item);</span>
+<span class="nc" id="L208">        return &quot;New quantity for &quot; + item.getItemName() + &quot;: &quot; + item.getQuantity();</span>
+    }
+
+    /**
+     * A method to decrease the quantity of an item in the Items table
+     * @param itemSKU
+     *  The item to decrease the quantity of
+     * @param quantity
+     *  The amount to decrease it by
+     * @return
+     *  A status message containing the Item's new quantity
+     * @throws IllegalActionException
+     *  A custom RuntimeException that handles when a user tries to
+     *  lower an Item's quantity below 0
+     */
+    public String decreaseItemQuantity(Integer itemSKU, int quantity) {
+<span class="nc" id="L224">        Item item = findById(itemSKU);</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">        if (item.getQuantity() &lt;= quantity) {</span>
+<span class="nc" id="L226">            throw new IllegalActionException(&quot;Cannot lower item quantity below 0&quot;);</span>
+        }
+        else {
+<span class="nc" id="L229">            item.setQuantity(item.getQuantity() - quantity);</span>
+<span class="nc" id="L230">            itemRepository.save(item);</span>
+<span class="nc" id="L231">            return &quot;New quantity for &quot; + item.getItemName() + &quot;: &quot; + item.getQuantity();</span>
+        }
+    }
+
+    /**
+     * A method that deletes an Item from the Items table
+     * @param id
+     *  The id the item
+     */
+<span class="nc" id="L240">    public void deleteById(Integer id) {itemRepository.deleteById(id);}</span>
+
+    /**
+     * A method that deletes all Items from the database
+     */
+<span class="nc" id="L245">    public void deleteAll() {itemRepository.deleteAll();}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

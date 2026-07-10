@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="white_alpha">#65e8faff</color>
+    <color name="white_alpha2">#E6E9FAFF</color>
+    <color name="blue_alpha">#0C2F4Fff</color>
+    <color name="background">#CBEEF7</color>
+    <color name="primary">#002147</color>
+    <color name="text">#0C2F4F</color>
+    <color name="red">#DE0000</color>
+    <color name="light_blue_50">#FFE1F5FE</color>
+    <color name="light_blue_200">#FF81D4FA</color>
+    <color name="light_blue_600">#FF039BE5</color>
+    <color name="light_blue_900">#FF01579B</color>
+    <color name="im_light_blue">#8AC0FF</color>
+    <color name="im_sky_blue">#E6F1FF</color>
+    <color name="gray_blue">#87A4C4 </color>
+    <color name="cool_blue">#80FFFFFF</color>
+    <color name="transparent">#00FFFFFF</color>
+
+    <!-- Shipment Notification -->
+    <color name="badge_bg_shipment">#2E5F7A</color>
+    <color name="badge_text_shipment">#90CDE0</color>
+
+    <!-- Chat Notification-->
+    <color name="badge_bg_chat">#3A5A82</color>
+    <color name="badge_text_chat">#B8D0E8</color>
+
+    <!-- Inventory Notification -->
+    <color name="badge_bg_inventory">#275E72</color>
+    <color name="badge_text_inventory">#7FD4C1</color>
+</resources>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>shipmentEditActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.shipments.ui</a> &gt; <span class="el_source">shipmentEditActivity.java</span></div><h1>shipmentEditActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.shipments.ui;
+
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.androidexample.R;
+import com.example.androidexample.features.NetworkCallback;
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+import com.example.androidexample.features.shipments.model.ShipmentObject;
+import com.example.androidexample.features.shipments.services.ShipmentRequestMethods;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+<span class="nc" id="L25">public class shipmentEditActivity extends AppCompatActivity {</span>
+    //UI components
+    private Button updateButton, cancelButton;
+    private TextView shipmentStatusMsg, shipmentID;
+    private EditText shipmentScheduledDate;
+    private ImageView profile, menu;
+    private boolean isArrived, isOffloaded;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L36">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L37">        setContentView(R.layout.activity_shipment_edit);</span>
+
+        // Intialize UI components
+<span class="nc" id="L40">        shipmentStatusMsg = findViewById(R.id.shipment_status_msg);</span>
+<span class="nc" id="L41">        updateButton = findViewById(R.id.update_button);</span>
+<span class="nc" id="L42">        cancelButton = findViewById(R.id.cancel_button);</span>
+<span class="nc" id="L43">        shipmentScheduledDate = findViewById(R.id.shipment_shipmentDate);</span>
+<span class="nc" id="L44">        shipmentID = findViewById(R.id.schedule_title);</span>
+<span class="nc" id="L45">        profile = findViewById(R.id.profile_icon);</span>
+<span class="nc" id="L46">        menu = findViewById(R.id.menu_icon);</span>
+
+
+<span class="nc" id="L49">        CheckBox arrivedCheck = findViewById(R.id.arrived_check);</span>
+<span class="nc" id="L50">        CheckBox offloadCheck = findViewById(R.id.offload_check);</span>
+
+        // Get shipment object and it's attributes from previous page
+<span class="nc" id="L53">        ShipmentObject shipment = (ShipmentObject) getIntent().getSerializableExtra(&quot;shipment_object&quot;);</span>
+<span class="nc" id="L54">        int id = shipment.getShipmentId();</span>
+
+<span class="nc" id="L56">        shipmentID.setText(&quot;Update Shipment: &quot; + id);</span>
+<span class="nc" id="L57">        isArrived = shipment.getArrived();</span>
+<span class="nc" id="L58">        isOffloaded = shipment.getOffloaded();</span>
+
+
+        // Set onclick for schedule button
+<span class="nc" id="L62">        updateButton.setOnClickListener(view -&gt; {</span>
+
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            if(arrivedCheck.isChecked())</span>
+<span class="nc" id="L65">                isArrived = true;</span>
+
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            if(offloadCheck.isChecked())</span>
+<span class="nc" id="L68">                isOffloaded = true;</span>
+
+<span class="nc" id="L70">            Log.d(&quot;ARRIVED&quot;, String.valueOf(isArrived));</span>
+<span class="nc" id="L71">            Log.d(&quot;OFFLOADED&quot;, String.valueOf(isOffloaded));</span>
+
+<span class="nc" id="L73">            DateTimeFormatter formatter = null;</span>
+            LocalDate scheduledDate;
+
+            try {
+                // in oder to use LocalDate, we need ensure api is current enough
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+<span class="nc" id="L79">                    formatter = DateTimeFormatter.ofPattern(&quot;MM-dd-yyyy&quot;);</span>
+<span class="nc" id="L80">                    scheduledDate = LocalDate.parse(shipmentScheduledDate.getText().toString(), formatter);</span>
+                } else {
+<span class="nc" id="L82">                    scheduledDate = null;</span>
+                }
+<span class="nc" id="L84">            } catch (Exception e) {</span>
+<span class="nc" id="L85">                Log.e(&quot;DATE_PARSE_ERROR&quot;, &quot;Invalid date format&quot;, e);</span>
+<span class="nc" id="L86">                Toast.makeText(this, &quot;Invalid date format, you may need to add a zero in front of a single digit&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L87">                shipmentStatusMsg.setText(&quot;Invalid date format. Make sure it is MM-dd-yyyy&quot;);</span>
+<span class="nc" id="L88">                scheduledDate = null;</span>
+<span class="nc" id="L89">                return;</span>
+<span class="nc" id="L90">            }</span>
+
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            if ( scheduledDate == null) {</span>
+<span class="nc" id="L93">                Toast.makeText(this, &quot;Complete all fields&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L94">                shipmentStatusMsg.setText(&quot;Complete all fields&quot;);</span>
+<span class="nc" id="L95">                return;</span>
+            } else {
+<span class="nc" id="L97">                ShipmentRequestMethods.updateShipmentRequest(this, id, isArrived, isOffloaded, scheduledDate, new NetworkCallback&lt;String&gt;(){</span>
+                    @Override
+                    public void onSuccess(String message) {
+<span class="nc" id="L100">                        shipmentStatusMsg.setText(message);</span>
+<span class="nc" id="L101">                        startActivity(new Intent(shipmentEditActivity.this, ShipmentListViewActivity.class));</span>
+<span class="nc" id="L102">                    }</span>
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L105">                        shipmentStatusMsg.setText(message);</span>
+<span class="nc" id="L106">                    }</span>
+                });
+            }
+<span class="nc" id="L109">        });</span>
+
+<span class="nc" id="L111">        BannerHelper.setupBanner(this, profile, menu);</span>
+
+        // Set onclick for cancel button
+<span class="nc" id="L114">        cancelButton.setOnClickListener(view -&gt;</span>
+<span class="nc" id="L115">                startActivity(new Intent(shipmentEditActivity.this, ShipmentListViewActivity.class)));</span>
+<span class="nc" id="L116">    }</span>
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DisplayChangeHistory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.items</a> &gt; <span class="el_source">DisplayChangeHistory.java</span></div><h1>DisplayChangeHistory.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.items;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.example.androidexample.R;
+import com.example.androidexample.VolleySingleton;
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+<span class="nc" id="L30">public class DisplayChangeHistory extends AppCompatActivity {</span>
+
+    // UI components
+    private Button btnJsonArrReq, homeButton;  // Button to trigger JSON array request
+    private InventoryChangeAdapter adapter;   // Adapter for the ListView
+    private ListView listView;     // ListView to display JSON data
+    private TextView responseBox;
+    private ImageView profile, menu;
+
+    // URL to fetch JSON array data
+    private static final String URL_JSON_ARRAY = &quot;http://coms-3090-013.class.las.iastate.edu:8080/inventory/changes&quot;;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L44">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L45">        setContentView(R.layout.activity_view_change_history);</span>
+
+        // Initialize UI elements
+<span class="nc" id="L48">        btnJsonArrReq = findViewById(R.id.btnJsonArr);</span>
+<span class="nc" id="L49">        listView = findViewById(R.id.listView);</span>
+<span class="nc" id="L50">        homeButton = findViewById(R.id.homeButton);</span>
+<span class="nc" id="L51">        responseBox = findViewById(R.id.responseBox);</span>
+
+        //banner setup
+<span class="nc" id="L54">        profile = findViewById(R.id.profile_icon);</span>
+<span class="nc" id="L55">        menu = findViewById(R.id.menu_icon);</span>
+<span class="nc" id="L56">        BannerHelper.setupBanner(this, profile, menu);</span>
+
+        // Initialize the adapter with an empty list (data will be added dynamically)
+<span class="nc" id="L59">        adapter = new InventoryChangeAdapter(this, new ArrayList&lt;&gt;());</span>
+<span class="nc" id="L60">        listView.setAdapter(adapter);</span>
+
+        // Set up click listener for the button
+<span class="nc" id="L63">        btnJsonArrReq.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L66">                makeJsonArrayReq(); // Trigger JSON array request when button is clicked</span>
+<span class="nc" id="L67">            }</span>
+        });
+<span class="nc" id="L69">        homeButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L72">                startActivity(new Intent(DisplayChangeHistory.this, ItemManagementNavPage.class));</span>
+<span class="nc" id="L73">            }</span>
+        });
+<span class="nc" id="L75">    }</span>
+
+    /**
+     * Method to make a JSON array request using Volley
+     */
+    private void makeJsonArrayReq() {
+<span class="nc" id="L81">        JsonArrayRequest jsonArrReq = new JsonArrayRequest(</span>
+                Request.Method.GET,  // HTTP request method (GET)
+                URL_JSON_ARRAY,      // URL of the JSON array API
+                null,                // Pass null as the request body since it's a GET request
+
+                // Response listener for handling successful response
+<span class="nc" id="L87">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+<span class="nc" id="L90">                        Log.d(&quot;Volley Response&quot;, response.toString());</span>
+<span class="nc" id="L91">                        responseBox.setText(&quot;success&quot;);</span>
+
+                        // Loop through the JSON array and extract required fields
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                        for (int i = 0; i &lt; response.length(); i++) {</span>
+                            try {
+<span class="nc" id="L96">                                JSONObject jsonObject = response.getJSONObject(i);</span>
+<span class="nc" id="L97">                                Integer changeId = jsonObject.getInt(&quot;changeId&quot;);   // Extract name</span>
+<span class="nc" id="L98">                                Integer skuNumber = jsonObject.getInt(&quot;skuNumber&quot;);</span>
+<span class="nc" id="L99">                                Integer amountOfItem = jsonObject.getInt(&quot;amountOfItem&quot;);   // Extract name</span>
+
+<span class="nc" id="L101">                                Integer employeeId = jsonObject.optInt(&quot;employeeId&quot;,-1);// Extract email</span>
+
+
+                                // Create a ListItemObject and add it to the adapter
+<span class="nc" id="L105">                                InventoryChangeObject item = new InventoryChangeObject(changeId, skuNumber, amountOfItem, employeeId);</span>
+<span class="nc" id="L106">                                adapter.add(item);</span>
+
+<span class="nc" id="L108">                            } catch (JSONException e) {</span>
+<span class="nc" id="L109">                                e.printStackTrace(); // Handle JSON parsing errors</span>
+<span class="nc" id="L110">                            }</span>
+                        }
+<span class="nc" id="L112">                    }</span>
+                },
+
+                // Error listener for handling request failure
+<span class="nc" id="L116">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L119">                        Log.e(&quot;Volley Error&quot;, error.toString()); // Log error details</span>
+<span class="nc" id="L120">                        responseBox.setText(error.toString());</span>
+<span class="nc" id="L121">                    }</span>
+                }
+<span class="nc" id="L123">        ) {</span>
+            // Override getHeaders() if authentication headers are needed
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L127">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+//                headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;); // Example authentication header
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;); // Example content-type header
+<span class="nc" id="L130">                return headers;</span>
+            }
+
+            // Override getParams() if you need to send request parameters
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L136">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+//                params.put(&quot;param1&quot;, &quot;value1&quot;); // Example parameter
+//                params.put(&quot;param2&quot;, &quot;value2&quot;); // Example parameter
+<span class="nc" id="L139">                return params;</span>
+            }
+        };
+
+        // Adding request to the Volley request queue for execution
+<span class="nc" id="L144">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsonArrReq);</span>
+<span class="nc" id="L145">    }</span>
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

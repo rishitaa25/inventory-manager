@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Driver.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.entities</a> &gt; <span class="el_source">Driver.java</span></div><h1>Driver.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.entities;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import java.util.List;
+
+/**
+ * A robust Entity class for modeling a Driver within the inventory management system
+ */
+@Entity
+@Getter
+@Setter
+@Table(name = &quot;Drivers&quot;)
+@ToString(callSuper = true)
+public class Driver extends Employee{
+    /**
+     * A List variable representing a list of shipments the Driver has been assigned to.
+     * The column is separate from the Employee table in H2 or MySQL
+     */
+    @ManyToMany(mappedBy = &quot;drivers&quot;, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(&quot;drivers&quot;)
+    private List&lt;Shipment&gt; shipments;
+
+    /**
+     * INIT: The No Args constructor required by SpringBoot
+     */
+<span class="fc" id="L30">    public Driver() {}</span>
+
+    /**
+     * INIT: The Minimal Args constructor for creating a Driver object
+     * @param ssn
+     *  The Social Security Number of the Driver
+     * @param firstName
+     *  The first name of the Driver
+     * @param userName
+     *  The username of the Driver
+     */
+    public Driver(String ssn, String firstName, String userName) {
+<span class="nc" id="L42">        super(ssn, firstName, userName);</span>
+<span class="nc" id="L43">    }</span>
+
+    /**
+     * INIT: The All Args constructor for creating a Driver object
+     * @param ssn
+     *  The Social Security Number of the Driver
+     * @param firstName
+     *  The first name of the Driver
+     * @param lastName
+     *  The last name of the Driver
+     * @param userName
+     *  The username of the Driver
+     * @param email
+     *  The email address of the Driver
+     * @param phoneNumber
+     *  The phone number of the Driver
+     */
+<span class="nc" id="L60">    public Driver(String ssn, String firstName, String lastName, String userName, String email, String phoneNumber) {super(ssn, firstName, lastName, userName, email, phoneNumber);}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

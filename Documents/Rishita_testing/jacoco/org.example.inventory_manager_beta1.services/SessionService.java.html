@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SessionService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.services</a> &gt; <span class="el_source">SessionService.java</span></div><h1>SessionService.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.services;
+
+import org.example.inventory_manager_beta1.DataEnums.AccessLevel;
+import org.example.inventory_manager_beta1.entities.Session;
+import org.example.inventory_manager_beta1.repositories.SessionRepository;
+import org.springframework.stereotype.Service;
+import java.util.Optional;
+
+/**
+ * Service for managing user sessions throughout the application.
+ * &lt;p&gt;Sessions are the server-side component of the authentication system.
+ * When a user logs in, a {@link Session} row is created in the database and
+ * its UUID is embedded in a JWT returned to the client. On every subsequent
+ * request, {@code JwtAuthFilter} calls {@link #findSession(String)} to verify
+ * the session is still active. When the user logs out, {@link #closeSession(String)}
+ * deletes the row which immediately invalidates their token.
+ */
+@Service
+public class SessionService {
+
+    private final SessionRepository sessionRepository;
+
+    /**
+     * INIT: Constructs the service with its required repository dependency.
+     * @param sessionRepository
+     *  The JPA repository for session persistence
+     */
+<span class="fc" id="L28">    public SessionService(SessionRepository sessionRepository) {this.sessionRepository = sessionRepository;}</span>
+
+    /**
+     * SEARCH: Looks up an active session by its UUID.
+     * Called by {@code JwtAuthFilter} on every incoming authenticated request.
+     * @param id
+     *  The UUID string extracted from the incoming JWT
+     * @return
+     *  The {@link Session} if active, or an empty {@link Optional} if the
+     *  user has logged out or the session never existed
+     */
+    public Optional&lt;Session&gt; findSession(String id) {
+<span class="nc" id="L40">        return sessionRepository.findBySessionId(id);</span>
+    }
+
+    /**
+     * CREATE: Opens a new session for a user who has just successfully logged in.
+     * The session UUID is generated automatically inside the {@link Session} constructor.
+     * @param employeeId
+     *  The ID of the employee logging in
+     * @param accessLevel
+     *  Their access level at the time of login
+     * @param userName
+     *  Their username
+     * @return
+     *  The newly created and saved {@link Session}
+     */
+    public Session createSession(Integer employeeId, AccessLevel accessLevel, String userName) {
+<span class="nc" id="L56">        Session session = new Session(employeeId, accessLevel, userName);</span>
+<span class="nc" id="L57">        return sessionRepository.save(session);</span>
+    }
+
+    /**
+     * DELETE: Closes a specific session by its UUID.
+     * Used for logout and after this call, any JWT containing this session ID
+     * will be rejected by {@code JwtAuthFilter}.
+     * @param sessionID
+     *  The UUID of the session to close
+     */
+<span class="nc" id="L67">    public void closeSession(String sessionID) {sessionRepository.deleteById(sessionID);}</span>
+
+    /**
+     * DELETE: Closes all sessions belonging to a specific employee.
+     * Use this to force a full logout from all devices, for example after
+     * a password change or account suspension.
+     * @param employeeId
+     *  The ID of the employee whose sessions should all be invalidated
+     */
+<span class="nc" id="L76">    public void closeAllSessions(Integer employeeId) {sessionRepository.deleteAllByEmployeeId(employeeId);}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

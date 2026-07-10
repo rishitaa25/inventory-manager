@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/my_background_color"
+    tools:context=".TermsActivity">
+
+    <TextView
+        android:id="@+id/main_msg_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:fontFamily="@font/goldman_bold"
+        android:text="Nexus"
+        android:textColor="@color/my_text_color"
+        android:textSize="100sp"
+        tools:layout_editor_absoluteX="28dp"
+        tools:layout_editor_absoluteY="220dp">
+
+    </TextView>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>

@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShiftService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.services</a> &gt; <span class="el_source">ShiftService.java</span></div><h1>ShiftService.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.services;
+
+import org.example.inventory_manager_beta1.DTO.Employees.Shifts.*;
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.EmployeeNotFoundException;
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.IllegalActionException;
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.ShiftNotFoundException;
+import org.example.inventory_manager_beta1.entities.Employee;
+import org.example.inventory_manager_beta1.entities.Shift;
+import org.example.inventory_manager_beta1.repositories.EmployeeRepository;
+import org.example.inventory_manager_beta1.repositories.ShiftRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * A robust service class to handle all the different logic and search methods relating
+ * to the Shift class. It is complete with all the ShiftRepository search methods
+ * defined, and it handles every Shift related logic method with included custom error handling
+ */
+@Service
+public class ShiftService {
+    /**
+     * The auto-injected ShiftRepository for handling custom Shift searches
+     */
+    @Autowired
+    private final ShiftRepository shiftRepository;
+
+    /**
+     * The auto-injected EmployeeRepository for handling custom Employee searches
+     */
+    @Autowired
+    private final EmployeeRepository employeeRepository;
+
+    /**
+     * INIT: Used for initializing the repositories for custom database checks and searches
+     * @param shiftRepository
+     *  The repository containing the custom Shift search methods
+     * @param employeeRepository
+     *  The repository containing the custom Employee search methods
+     */
+<span class="fc" id="L45">    public ShiftService (ShiftRepository shiftRepository, EmployeeRepository employeeRepository) {</span>
+<span class="fc" id="L46">        this.shiftRepository = shiftRepository;</span>
+<span class="fc" id="L47">        this.employeeRepository = employeeRepository;</span>
+<span class="fc" id="L48">    }</span>
+
+    /*==================================SEARCH METHODS==================================*/
+
+    /**
+     * SEARCH: A search method for finding an Employee using their
+     * identification number
+     * @param id
+     *  The identification number of the Employee being searched for
+     * @return
+     *  The Employee with the matching ID number if they exist
+     * @throws EmployeeNotFoundException
+     *  Custom NotFound exception if the Employee is not found
+     */
+    public Employee findByEmployeeId(Integer id) {
+<span class="nc" id="L63">        return employeeRepository.findById(id)</span>
+<span class="nc" id="L64">                .orElseThrow(() -&gt; new EmployeeNotFoundException(&quot;Employee with ID: &quot; + id + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding all Shifts for a specific Employee
+     * @param employeeId
+     *  The ID of the Employee
+     * @return
+     *  A list of all the Shifts the matching Employee has
+     */
+    @Transactional
+    public List&lt;Shift&gt; findAllEmployeeShifts(Integer employeeId) {
+<span class="nc" id="L76">        Employee employee = findByEmployeeId(employeeId);</span>
+<span class="nc" id="L77">        return employee.getShifts();</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding a specific Shift that belongs to an Employee
+     * @param employeeId
+     *  The ID of the Employee the Shift belongs to
+     * @param shiftDate
+     *  The date the shift is scheduled
+     * @return
+     *  The matching Shift if it exists
+     * @throws ShiftNotFoundException
+     *  Custom RuntimeException if the Shift is not found
+     */
+    public Shift findEmployeeShiftByDate(Integer employeeId, LocalDate shiftDate) {
+<span class="nc" id="L92">        return shiftRepository.findByEmployeeEmployeeIdAndShiftDate(employeeId, shiftDate)</span>
+<span class="nc" id="L93">                .orElseThrow(() -&gt; new ShiftNotFoundException(&quot;Shift with date&quot; + shiftDate + &quot; not foud&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A private search method for finding a specific Shift that belongs
+     * to an Employee. Used to avoid the RuntimeException throw by findEmployeeShiftByDate
+     * @param employeeId
+     *  The ID of the Employee the Shift belongs to
+     * @param shiftDate
+     *  The date the shift is scheduled
+     * @return
+     *  The matching Shift if it exists
+     */
+<span class="nc" id="L106">    private Optional&lt;Shift&gt; findOptionalEmployeeShiftByDate(Integer employeeId, LocalDate shiftDate) {return shiftRepository.findByEmployeeEmployeeIdAndShiftDate(employeeId, shiftDate);}</span>
+
+    /**
+     * SEARCH: A search method for finding all Shifts for a specific Employee
+     * within a week of time
+     * @param employeeId
+     *  The ID of the Employee
+     * @param startingWeekDate
+     *  The starting date for Shift searching
+     * @return
+     *  A list of Shifts that the matching Employee is working within the week
+     */
+    public List&lt;Shift&gt; findWeeklyEmployeeShifts(Integer employeeId, LocalDate startingWeekDate) {
+<span class="nc" id="L119">        employeeRepository.findById(employeeId);</span>
+<span class="nc" id="L120">        LocalDate endDate = startingWeekDate.plusDays(6);</span>
+<span class="nc" id="L121">        return shiftRepository.findByEmployeeEmployeeIdAndShiftDateBetween(employeeId, startingWeekDate, endDate);</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding a specific Shift using its identification number
+     * @param id
+     *  The identification number of the Shift being searched for
+     * @return
+     *  The Shift with the matching ID if it exists
+     * @throws ShiftNotFoundException
+     *  Custom RuntimeException if the Shift is not found
+     */
+    public Shift findById(Integer id) {
+<span class="nc" id="L134">        return shiftRepository.findById(id)</span>
+<span class="nc" id="L135">                .orElseThrow(() -&gt; new ShiftNotFoundException(&quot;Shift with ID: &quot; + id + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding Shift(s) using their duration
+     * @param duration
+     *  The duration in hours of the Shift(s) being searched for
+     * @return
+     *  A list of Shift(s) with a matching duration
+     */
+<span class="nc" id="L145">    public List&lt;Shift&gt; findByDuration(Double duration) {return shiftRepository.findByDuration(duration);}</span>
+
+    /**
+     * SEARCH: A search method for finding Shift(s) using their duration
+     * and assigned date
+     * @param duration
+     *  The duration of the shift(s) being searched for
+     * @param shiftDate
+     *  The assigned date of the Shift(s) being searched for
+     * @return
+     *  A List of Shift(s) with a matching duration and assigned date
+     */
+<span class="nc" id="L157">    public List&lt;Shift&gt; findByDurationAndDate(Double duration, LocalDate shiftDate) {return shiftRepository.findByShiftDateAndDuration(shiftDate, duration);}</span>
+
+    /**
+     * SEARCH: A search method for finding Shift(s) using their start time
+     * @param startTime
+     *  The start time of the Shift(s) being searched for
+     * @return
+     *  A list of Shift(s) with a matching start time
+     */
+<span class="nc" id="L166">    public List&lt;Shift&gt; findByStartTime(LocalTime startTime) {return shiftRepository.findByStartTime(startTime);}</span>
+
+    /**
+     * SEARCH: A search method for finding Shift(s) using their start time
+     * and assigned date
+     * @param startTime
+     *  The start time of the Shift(s) being searched for
+     * @param shiftDate
+     *  The assigned date of the Shift(s) being searched for
+     * @return
+     *  A List of Shift(s) with a matching start time and assigned date
+     */
+<span class="nc" id="L178">    public List&lt;Shift&gt; findByStartTimeAndDate(LocalTime startTime, LocalDate shiftDate) {return shiftRepository.findByShiftDateAndStartTime(shiftDate, startTime);}</span>
+
+    /**
+     * SEARCH: A search method for finding Shift(s) using their end time
+     * @param endTime
+     *  The end time of the Shift(s) being searched for
+     * @return
+     *  A list of Shift(s) with a matching end time
+     */
+<span class="nc" id="L187">    public List&lt;Shift&gt; findByEndTime(LocalTime endTime) {return shiftRepository.findByEndTime(endTime);}</span>
+
+    /**
+     * SEARCH: A search method for finding Shift(s) using their end time
+     * and assigned date
+     * @param endTime
+     *  The end time of the Shift(s) being searched for
+     * @param shiftDate
+     *  The assigned date of the Shift(s) being searched for
+     * @return
+     *  A List of Shift(s) with a matching end time and assigned date
+     */
+<span class="nc" id="L199">    public List&lt;Shift&gt; findByEndTimeAndDate(LocalTime endTime, LocalDate shiftDate) {return shiftRepository.findByShiftDateAndEndTime(shiftDate, endTime);}</span>
+
+    /**
+     * SEARCH: A search method for finding Shift(s) using their shift date
+     * @param shiftDate
+     *  The date of the Shift(s) being searched for
+     * @return
+     *  A list of Shift(s) with a matching shift date
+     */
+<span class="nc" id="L208">    public List&lt;Shift&gt; findByShiftDate(LocalDate shiftDate) {return shiftRepository.findByShiftDate(shiftDate);}</span>
+
+    /**
+     * SEARCH: A search method for finding Shift(s) that fall within a given date range
+     * @param startDate
+     *  The start date of the range being searched
+     * @param endDate
+     *  The end date of the range being searched
+     * @return
+     *  A list of Shift(s) whose shift date falls within the given date range
+     */
+<span class="nc" id="L219">    public List&lt;Shift&gt; findByShiftDateBetween(LocalDate startDate, LocalDate endDate) {return shiftRepository.findByShiftDateBetween(startDate, endDate);}</span>
+
+    /**
+     * SEARCH: A search method for finding all Shifts in the database
+     * @return
+     *  A list of all existing Shifts in the database
+     */
+<span class="nc" id="L226">    public List&lt;Shift&gt; findAll() {return shiftRepository.findAll();}</span>
+
+    /*==================================LOGIC METHODS==================================*/
+
+    /**
+     * CREATE: A logic method that creates a new Shift object, assigns it to an Employee,
+     * and saves it to the database
+     * @param shiftRequest
+     *  The DTO containing all the information for the new Shift
+     * @return
+     *  A DTO containing a message confirming the Shift was successfully created
+     * @throws IllegalActionException
+     *  Custom RuntimeException if the Employee already has a shift for the requested day
+     */
+    public ShiftResponse createShift(ShiftRequest shiftRequest) {
+<span class="nc" id="L241">        Employee assignedEmployee = findByEmployeeId(shiftRequest.getEmployeeId());</span>
+
+        //Check to make sure than an employee can only have one shift per day
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        if (findOptionalEmployeeShiftByDate(assignedEmployee.getEmployeeId(), shiftRequest.getShiftDate()).isPresent())</span>
+<span class="nc" id="L245">            throw new IllegalActionException(&quot;Employee &quot; + assignedEmployee.getEmployeeId() +</span>
+<span class="nc" id="L246">                                             &quot; already has a shift on &quot; + shiftRequest.getShiftDate() +</span>
+                                             &quot;. Either transfer it or delete it before assigning another shift&quot;);
+
+<span class="nc" id="L249">        Shift newShift = new Shift(shiftRequest.getStartTime(),</span>
+<span class="nc" id="L250">                shiftRequest.getEndTime(),</span>
+<span class="nc" id="L251">                shiftRequest.getShiftDate());</span>
+<span class="nc" id="L252">        newShift.setEmployee(assignedEmployee);</span>
+<span class="nc" id="L253">        shiftRepository.save(newShift);</span>
+<span class="nc" id="L254">        return new ShiftResponse(&quot;Employee &quot; + assignedEmployee.getEmployeeId() +</span>
+<span class="nc" id="L255">                                 &quot; has been assigned a shift on &quot; + shiftRequest.getShiftDate() +</span>
+<span class="nc" id="L256">                                 &quot; from &quot; + shiftRequest.getStartTime() +</span>
+<span class="nc" id="L257">                                 &quot; to &quot; + shiftRequest.getEndTime());</span>
+    }
+
+    /**
+     * UPDATE: A logic method that updates an existing Shift's information including
+     * its date, start time, end time, and assigned Employee
+     * @param shiftUpdate
+     *  The DTO containing the updated information for the Shift
+     * @return
+     *  A DTO containing a message confirming the Shift was successfully updated
+     */
+    @Transactional
+    public ShiftResponse updateShift(ShiftUpdateRequest shiftUpdate) {
+        //Validation check
+<span class="nc" id="L271">        Shift updatedShift = findEmployeeShiftByDate(shiftUpdate.getEmployeeId(), shiftUpdate.getShiftDate());</span>
+        //Updating existing fields
+<span class="nc bnc" id="L273" title="All 2 branches missed.">        if (shiftUpdate.getStartTime() != null)</span>
+<span class="nc" id="L274">            updatedShift.setStartTime(shiftUpdate.getStartTime());</span>
+<span class="nc bnc" id="L275" title="All 2 branches missed.">        if (shiftUpdate.getEndTime() != null)</span>
+<span class="nc" id="L276">            updatedShift.setEndTime(shiftUpdate.getEndTime());</span>
+        //Re-calculating shift duration
+<span class="nc" id="L278">        updatedShift.calculateDuration();</span>
+<span class="nc" id="L279">        shiftRepository.save(updatedShift);</span>
+<span class="nc" id="L280">        return new ShiftResponse(&quot;Successfully updated shift information&quot;);</span>
+    }
+
+    /**
+     * UPDATE: A logic method that transfers an existing Shift to a different Employee
+     * @param shiftId
+     *  The identification number of the Shift being transferred
+     * @param transferEmployeeId
+     *  The identification number of the Employee the Shift is being transferred to
+     */
+    public void transferShift (Integer shiftId, Integer transferEmployeeId) {
+<span class="nc" id="L291">        Shift transferShift = findById(shiftId);</span>
+<span class="nc" id="L292">        Employee transferEmployee = findByEmployeeId(transferEmployeeId);</span>
+<span class="nc" id="L293">        transferShift.setEmployee(transferEmployee);</span>
+<span class="nc" id="L294">        shiftRepository.save(transferShift);</span>
+<span class="nc" id="L295">    }</span>
+
+    /**
+     * DELETE: A logic method that deletes a specific Shift from the database
+     * using its identification number
+     * @param employeeId
+     *  The identification number of the Employee the Shift belongs to
+     * @param shiftDate
+     *  The date the shift is scheduled
+     */
+    @Transactional
+    public void deleteShift (Integer employeeId, LocalDate shiftDate) {
+<span class="nc" id="L307">        Employee employee = findByEmployeeId(employeeId);</span>
+<span class="nc" id="L308">        Shift shift = findEmployeeShiftByDate(employeeId, shiftDate); //Validation check</span>
+
+<span class="nc" id="L310">        employee.getShifts().remove(shift);</span>
+<span class="nc" id="L311">        shiftRepository.deleteById(shift.getId());</span>
+<span class="nc" id="L312">    }</span>
+
+    /**
+     * DELETE: A logic method that deletes all Shifts from the database
+     */
+<span class="nc" id="L317">    public void deleteAllShifts() {shiftRepository.deleteAll();}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

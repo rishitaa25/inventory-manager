@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WS_ShipmentNotification.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.mainApplicationClasses</a> &gt; <span class="el_source">WS_ShipmentNotification.java</span></div><h1>WS_ShipmentNotification.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.mainApplicationClasses;
+
+import jakarta.websocket.*;
+import jakarta.websocket.server.PathParam;
+import jakarta.websocket.server.ServerEndpoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.Map;
+
+/**
+ * A robust Web Socket class designed to handle the web socket notifications related to the Inventory Manager
+ */
+@ServerEndpoint(&quot;/shipments/{username}&quot;)
+@Component
+<span class="fc" id="L18">public class WS_ShipmentNotification {</span>
+    /**
+     * A Map variable linking active WebSocket Sessions to their associated usernames
+     */
+<span class="fc" id="L22">    private static Map&lt;Session, String&gt; sessionUsernameMap = new Hashtable&lt;&gt;();</span>
+    /**
+     * A Map variable linking active usernames to their associated WebSocket Sessions
+     */
+<span class="fc" id="L26">    private static Map&lt;String, Session&gt; usernameSessionMap = new Hashtable&lt;&gt;();</span>
+    /**
+     * A Logger variable for writing to the server console
+     */
+<span class="fc" id="L30">    private final Logger logger = LoggerFactory.getLogger(WS_ShipmentNotification.class);</span>
+
+    /**
+     * A logic method for what to do when a user opens a WebSocket connection
+     * @param session
+     *  The WebSocket session created when the connection is opened
+     * @param username
+     *  The username of the person who opened the connection
+     * @throws IOException
+     *  IOException if the user is already connected to this WebSocket session
+     */
+    @OnOpen
+    public void onOpen(Session session, @PathParam(&quot;username&quot;) String username) throws IOException {
+<span class="nc" id="L43">        logger.info(&quot;[onOpen] &quot; + username);</span>
+
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        if (usernameSessionMap.containsKey(username)) {</span>
+<span class="nc" id="L46">            session.getBasicRemote().sendText(&quot;Already connected&quot;);</span>
+<span class="nc" id="L47">            session.close();</span>
+        } else {
+<span class="nc" id="L49">            sessionUsernameMap.put(session, username);</span>
+<span class="nc" id="L50">            usernameSessionMap.put(username, session);</span>
+<span class="nc" id="L51">            logger.info(username + &quot; connected to shipment notifications&quot;);</span>
+        }
+<span class="nc" id="L53">    }</span>
+
+    /**
+     * A logic method for what to do when a user closes the WebSocket connection
+     * @param session
+     *  The WebSocket session that was being used
+     */
+    @OnClose
+    public void onClose(Session session) {
+<span class="nc" id="L62">        String username = sessionUsernameMap.get(session);</span>
+<span class="nc" id="L63">        sessionUsernameMap.remove(session);</span>
+<span class="nc" id="L64">        usernameSessionMap.remove(username);</span>
+<span class="nc" id="L65">        logger.info(&quot;[onClose] &quot; + username + &quot; disconnected&quot;);</span>
+<span class="nc" id="L66">    }</span>
+
+    /**
+     * A logic method for what to do if there is an error regarding WebSocket communication
+     * @param session
+     *  The WebSocket session being used
+     * @param throwable
+     *  The throwable Error message that was made
+     */
+    @OnError
+    public void onError(Session session, Throwable throwable) {
+<span class="nc" id="L77">        String username = sessionUsernameMap.get(session);</span>
+<span class="nc" id="L78">        logger.info(&quot;[onError] &quot; + username+ &quot;: &quot; + throwable.getMessage());</span>
+<span class="nc" id="L79">    }</span>
+
+    /**
+     * Sends a notification to a specific user
+     * @param username
+     *  The username of the recipient
+     * @param message
+     *  The notification message
+     */
+    public void notifyUser(String username, String message) {
+        try {
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            if (usernameSessionMap.containsKey(username)) {</span>
+<span class="nc" id="L91">                usernameSessionMap.get(username).getBasicRemote().sendText(message);</span>
+            } else {
+<span class="nc" id="L93">                logger.info(&quot;[notifyUser] &quot; + username + &quot; is not connected&quot;);</span>
+            }
+<span class="nc" id="L95">        } catch (IOException e) {</span>
+<span class="nc" id="L96">            logger.info(&quot;[notifyUser Exception] &quot; + e.getMessage());</span>
+<span class="nc" id="L97">        }</span>
+<span class="nc" id="L98">    }</span>
+
+    /**
+     * Broadcasts a notification to all connected users
+     * @param message
+     *  The notification message
+     */
+    public void broadcast(String message) {
+<span class="nc" id="L106">        sessionUsernameMap.forEach((session, username) -&gt; {</span>
+            try {
+<span class="nc" id="L108">                session.getBasicRemote().sendText(message);</span>
+<span class="nc" id="L109">            } catch (IOException e) {</span>
+<span class="nc" id="L110">                logger.info(&quot;[Broadcast Exception] &quot; + e.getMessage());</span>
+<span class="nc" id="L111">            }</span>
+<span class="nc" id="L112">        });</span>
+<span class="nc" id="L113">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

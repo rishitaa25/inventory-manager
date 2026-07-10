@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DriverController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.mainApplicationClasses</a> &gt; <span class="el_source">DriverController.java</span></div><h1>DriverController.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.mainApplicationClasses;
+
+import org.example.inventory_manager_beta1.Configuration.Annotation.RequiresAccess;
+import org.example.inventory_manager_beta1.DTO.Employees.Login.LoginRequest;
+import org.example.inventory_manager_beta1.DTO.Employees.Login.LoginResponse;
+import org.example.inventory_manager_beta1.DTO.Employees.SignUp.SignUpRequest;
+import org.example.inventory_manager_beta1.DTO.Employees.SignUp.SignUpResponse;
+import org.example.inventory_manager_beta1.DTO.Employees.Update.UpdateEmployeeRequest;
+import org.example.inventory_manager_beta1.DataEnums.AccessLevel;
+import org.example.inventory_manager_beta1.entities.*;
+import org.example.inventory_manager_beta1.services.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
+import java.util.List;
+
+/**
+ * A controller class containing all the different HTTP mappings for Driver related methods
+ */
+@RestController
+@RequestMapping(&quot;/driver&quot;)
+<span class="fc" id="L23">public class DriverController {</span>
+    /**
+     * The auto-injected driverService class for handling Driver related logic
+     */
+    @Autowired
+    private DriverService driverService;
+    /**
+     * The auto-injected ShiftService class for handling Shift related logic
+     */
+    @Autowired
+    private ShiftService shiftService;
+
+    /**
+     * CREATE: A controller method for handling Driver creation
+     * @param driverSignUp
+     *  The DTO containing the Driver information from a JSON
+     * @return
+     *  A message confirming if the sign-up is successful
+     */
+    @PostMapping(&quot;/signup&quot;)
+<span class="nc" id="L43">    public SignUpResponse addDriver (@RequestBody SignUpRequest driverSignUp) {return driverService.registerDriver(driverSignUp);}</span>
+
+    /**
+     * VERIFY: A controller method to handle verifying a Driver's login attempt
+     * @param loginRequest
+     *  The DTO containing the Driver's username and password
+     * @return
+     *  A message containing details about the login attempt
+     */
+    @PostMapping(&quot;/login&quot;)
+<span class="nc" id="L53">    public LoginResponse driverLogin (@RequestBody LoginRequest loginRequest) {return driverService.driverLogin(loginRequest);}</span>
+
+    /**
+     * LOGOUT: A controller method to handle closing a session a Driver opened
+     * @param authHeader
+     *  The Authorization header from the request
+     * @return
+     *  Confirmation message on success, error message if no token provided
+     */
+    @PostMapping(&quot;/logout&quot;)
+<span class="nc" id="L63">    public ResponseEntity&lt;String&gt; logout (@RequestHeader(value = &quot;Authorization&quot;, required = false) String authHeader) {return ResponseEntity.ok(driverService.driverLogout(authHeader));}</span>
+
+    /**
+     * READ: A controller method for handling searching a specific Driver
+     * @param driverId
+     *  The EmployeeID of the Driver
+     * @return
+     *  The specific Driver
+     */
+    @RequiresAccess(AccessLevel.DRIVER)
+    @GetMapping(&quot;/find-by/id/{driverId}&quot;)
+<span class="nc" id="L74">    public Driver getDriverViaId (@PathVariable(&quot;driverId&quot;) Integer driverId) {return driverService.findById(driverId);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Driver
+     * @param driverSSN
+     *  The SSN of the specific Driver
+     * @return
+     *  The Driver with the matching SSN if they exist
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;find-by/ssn/{driverSSN}&quot;)
+<span class="nc" id="L85">    public Driver getDriverViaSSN (@PathVariable(&quot;driverSSN&quot;) String driverSSN) {return driverService.findBySSN(driverSSN);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Driver
+     * @param driverFirstName
+     *  The first name of the specific Driver
+     * @return
+     *  A List of Driver(s) with a matching first name
+     */
+    @RequiresAccess(AccessLevel.DRIVER)
+    @GetMapping(&quot;find-by/first-name/{driverFirstName}&quot;)
+<span class="nc" id="L96">    public List&lt;Driver&gt; getDriverViaFirstName (@PathVariable(&quot;driverFirstName&quot;) String driverFirstName) {return driverService.findByFirstName(driverFirstName);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Driver
+     * @param driverLastName
+     *  The last name of the specific Driver
+     * @return
+     *  A List of Driver(s) with a matching last name
+     */
+    @RequiresAccess(AccessLevel.DRIVER)
+    @GetMapping(&quot;find-by/last-name/{driverLastName}&quot;)
+<span class="nc" id="L107">    public List&lt;Driver&gt; getDriverViaLastName (@PathVariable(&quot;driverLastName&quot;) String driverLastName) {return driverService.findByLastName(driverLastName);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Driver
+     * @param driverEmail
+     *  The email of the specific Driver
+     * @return
+     *  The Driver with the matching email if they exist
+     */
+    @RequiresAccess(AccessLevel.DRIVER)
+    @GetMapping(&quot;find-by/email/{driverEmail}&quot;)
+<span class="nc" id="L118">    public Driver getDriverViaEmail (@PathVariable(&quot;driverEmail&quot;) String driverEmail) {return driverService.findByEmail(driverEmail);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Driver
+     * @param driverPhoneNumber
+     *  The phone number of the specific Driver
+     * @return
+     *  The Driver with the matching phone number if they exist
+     */
+    @RequiresAccess(AccessLevel.DRIVER)
+    @GetMapping(&quot;find-by/phone-number/{driverPhoneNumber}&quot;)
+<span class="nc" id="L129">    public Driver getDriverViaPhoneNumber (@PathVariable(&quot;driverPhoneNumber&quot;) String driverPhoneNumber) {return driverService.findByPhoneNumber(driverPhoneNumber);}</span>
+
+    /**
+     * READ: A controller method for handling searching a specific Driver
+     * @param driverUserName
+     *  The username of the Driver
+     * @return
+     *  The specific Driver
+     */
+    @RequiresAccess(AccessLevel.DRIVER)
+    @GetMapping(&quot;/find-by/username/{driverUserName}&quot;)
+<span class="nc" id="L140">    public Driver getDriverViaUserName (@PathVariable String driverUserName) {return driverService.findByUserName(driverUserName);}</span>
+
+    /**
+     * READ: A controller method for handling searching for all Drivers
+     * @return
+     *  A list of all existing drivers
+     */
+    @RequiresAccess(AccessLevel.DRIVER)
+    @GetMapping(&quot;/find/all&quot;)
+<span class="nc" id="L149">    public List&lt;Driver&gt; getDrivers () {return driverService.findAll();}</span>
+
+    /**
+     * READ: A controller method that handles getting all shifts for a specific Driver
+     * @param driverId
+     *  The ID of the Driver
+     * @return
+     *  A list of shifts for the matching Driver
+     */
+    @RequiresAccess(AccessLevel.DRIVER)
+    @GetMapping(&quot;/{driverId}/all-shifts&quot;)
+<span class="nc" id="L160">    public List&lt;Shift&gt; getShifts (@PathVariable(&quot;driverId&quot;) Integer driverId) {return shiftService.findAllEmployeeShifts(driverId);}</span>
+
+    /**
+     * READ: A controller method that handles getting weekly shifts for a specific Driver
+     * @param driverId
+     *  The ID of the Driver
+     * @param startDay
+     *  The start date of the week
+     * @return
+     *  A list of shifts for the matching Driver within the week
+     */
+    @RequiresAccess(AccessLevel.DRIVER)
+    @GetMapping(&quot;/{driverId}/weekly-shifts/{startDay}&quot;)
+<span class="nc" id="L173">    public List&lt;Shift&gt; getWeeklyShifts (@PathVariable(&quot;driverId&quot;) Integer driverId, @PathVariable(&quot;startDay&quot;) LocalDate startDay) {return shiftService.findWeeklyEmployeeShifts(driverId, startDay);}</span>
+
+    /**
+     * UPDATE: A controller method for handling updating an existing Driver
+     * @param driverUpdateRequest
+     *  The DTO containing the new Driver information from a JSON
+     * @return
+     *  A message confirming a successful information update
+     */
+    @RequiresAccess(AccessLevel.DRIVER)
+    @PutMapping(&quot;/update&quot;)
+<span class="nc" id="L184">    public String updateDriver (@RequestBody UpdateEmployeeRequest driverUpdateRequest) {return driverService.updateDriver(driverUpdateRequest).getMessage();}</span>
+
+    /**
+     * DELETE: A controller method for handling specific Driver deletion
+     * @param driverId
+     *  The ID of the Driver being removed
+     * @return
+     *  True if completed
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @DeleteMapping(&quot;/delete/{driverId}&quot;)
+    public Boolean deleteDriver (@PathVariable Integer driverId) {
+<span class="nc" id="L196">        driverService.deleteDriver(driverId);</span>
+<span class="nc" id="L197">        return true;</span>
+    }
+
+    /**
+     * DELETE: A controller method for handling removing all drivers
+     * @return
+     *  True if completed
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @DeleteMapping(&quot;/delete/all&quot;)
+    public Boolean deleteAllDrivers () {
+<span class="nc" id="L208">        driverService.deleteAllDrivers();</span>
+<span class="nc" id="L209">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

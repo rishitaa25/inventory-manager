@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InsufficientAccessLevelException.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.ExceptionHandling.Exceptions</a> &gt; <span class="el_source">InsufficientAccessLevelException.java</span></div><h1>InsufficientAccessLevelException.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.ExceptionHandling.Exceptions;
+
+import lombok.Getter;
+import org.example.inventory_manager_beta1.DataEnums.AccessLevel;
+
+/**
+ * Runtime exception thrown when an authenticated user attempts to access
+ * a resource or method that requires a higher {@link AccessLevel} than they hold.
+ * &lt;p&gt;This exception is thrown by {@code AccessControl} (the AOP aspect) when
+ * a method annotated with {@code @RequiresAccess} is called by a user whose
+ * access level ordinal is less than the required level's ordinal.
+ * &lt;p&gt;It is intended to be caught by a global exception handler and returned
+ * to the client as a {@code 403 FORBIDDEN} response.
+ * &lt;p&gt;Usage example in {@code AccessControl}:
+ * &lt;pre&gt;
+ *   throw new InsufficientAccessException(AccessLevel.ADMIN, AccessLevel.EMPLOYEE);
+ *   // Message: &quot;Access denied. Required level: ADMIN, your level: EMPLOYEE&quot;
+ * &lt;/pre&gt;
+ */
+@Getter
+public class InsufficientAccessLevelException extends RuntimeException {
+
+    /**
+     * The access level that was required to perform the action.
+     */
+    private final AccessLevel requiredLevel;
+
+    /**
+     * The access level the caller actually holds.
+     */
+    private final AccessLevel callerLevel;
+
+    /**
+     * INIT: Constructs the exception with a descriptive message built from
+     * the required and caller access levels.
+     * @param requiredLevel
+     *  The minimum {@link AccessLevel} needed for the action
+     * @param callerLevel
+     *  The {@link AccessLevel} the caller actually has
+     */
+    public InsufficientAccessLevelException(AccessLevel requiredLevel, AccessLevel callerLevel) {
+<span class="nc" id="L42">        super(&quot;Access denied. Required level: &quot; + requiredLevel + &quot;, your level: &quot; + callerLevel);</span>
+<span class="nc" id="L43">        this.requiredLevel = requiredLevel;</span>
+<span class="nc" id="L44">        this.callerLevel = callerLevel;</span>
+<span class="nc" id="L45">    }</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

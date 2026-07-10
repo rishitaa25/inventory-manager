@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/Signup.css}">
+    <title>Sign Up</title>
+</head>
+<body>
+    <h1>Sign Up Here!</h1>
+    <form id="signupForm" action="/signup" method="post" onsubmit="showMessage(event)">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username" required><br><br>
+
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" required><br><br>
+
+        <button type="submit">Sign Up</button>
+    </form>
+    <div id="result"></div>
+    <script>
+        function showMessage(event) {
+            let username = document.getElementById("username").value;
+            let password = document.getElementById("password").value;
+
+            document.getElementById("result").innerHTML = "User Successfully added!<br>Username: " + username + "<br>Password: " + password;
+        }
+    </script>
+</body>
+</html>

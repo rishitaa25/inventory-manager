@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShipmentSearchResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.DTO.Shipments</a> &gt; <span class="el_source">ShipmentSearchResponse.java</span></div><h1>ShipmentSearchResponse.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.DTO.Shipments;
+
+import lombok.Data;
+import org.example.inventory_manager_beta1.DTO.Objects.ShortItem;
+import org.example.inventory_manager_beta1.entities.Driver;
+import org.example.inventory_manager_beta1.entities.Item;
+import org.example.inventory_manager_beta1.entities.ShippingCompany;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * A lightweight Data Transfer Object used for sending a formatted JSON
+ * from backend to frontend with details about a Shipment
+ */
+@Data
+public class ShipmentSearchResponse {
+    /**
+     * An Integer variable for containing/transferring the Shipment's ID
+     */
+    private Integer shipmentId;
+    /**
+     * A LocalDate variable for containing/transferring the Shipment's arrival date
+     */
+    private LocalDate arrivalDate;
+    /**
+     * A boolean variable for containing/transferring the Shipment's arrived status
+     */
+    private boolean arrived;
+    /**
+     * A boolean variable for containing/transferring the Shipment's offloaded status
+     */
+    private boolean offloaded;
+    /**
+     * A List variable for containing/transferring the Shipment's Items
+     */
+<span class="nc" id="L37">    private List&lt;ShortItem&gt; items = new ArrayList&lt;&gt;();</span>
+    /**
+     * A List variable for containing/transferring the ShippingCompanies sending Items on the Shipment
+     */
+<span class="nc" id="L41">    private List&lt;String&gt; shippingCompanies = new  ArrayList&lt;&gt;();</span>
+    /**
+     * A List variable for containing/transferring the Shipment's Drivers
+     */
+<span class="nc" id="L45">    private List&lt;String&gt; drivers = new ArrayList&lt;&gt;();</span>
+    /**
+     * A String variable for containing/transferring the username of the Admin who created the Shipment
+     */
+    private String creationAdmin;
+
+    /**
+     * INIT: The All Args constructor for creating a ShipmentSearchResponse
+     * @param shipmentId
+     *  The ID of the Shipment
+     * @param arrivalDate
+     *  The date the Shipment arrives
+     * @param arrived
+     *  The Shipment's arrival status
+     * @param offloaded
+     *  The Shipment's offloaded status
+     * @param items
+     *  The list of Items on the Shipment
+     * @param shippingCompanies
+     *  The list of ShippingCompanies sending Items
+     * @param drivers
+     *  The list of Drivers assigned to the Shipment
+     * @param creationAdmin
+     *  The username of the Admin who created the Shipment
+     */
+<span class="nc" id="L70">    public ShipmentSearchResponse(Integer shipmentId, LocalDate arrivalDate, boolean arrived, boolean offloaded, List&lt;Item&gt; items, List&lt;ShippingCompany&gt; shippingCompanies, List&lt;Driver&gt; drivers, String creationAdmin) {</span>
+<span class="nc" id="L71">        this.shipmentId = shipmentId;</span>
+<span class="nc" id="L72">        this.arrivalDate = arrivalDate;</span>
+<span class="nc" id="L73">        this.arrived = arrived;</span>
+<span class="nc" id="L74">        this.offloaded = offloaded;</span>
+<span class="nc" id="L75">        CreateShortLists(items, shippingCompanies, drivers);</span>
+<span class="nc" id="L76">        this.creationAdmin = creationAdmin;</span>
+<span class="nc" id="L77">    }</span>
+
+    /**
+     * A logic method that formats the lists of full Items, ShippingCompanies,
+     * and Drivers passed in and adds the desired data fields to the List
+     * variables in the ShipmentSearchResponse DTO
+     * @param longItems
+     *  The List of normal Items
+     * @param shippingCompanies
+     *  The List of ShippingCompanies sending Items
+     * @param drivers
+     *  The List of Drivers assigned to the Shipment
+     */
+    private void CreateShortLists(List&lt;Item&gt; longItems, List&lt;ShippingCompany&gt; shippingCompanies, List&lt;Driver&gt; drivers) {
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        for (Item item : longItems) {</span>
+<span class="nc" id="L92">            ShortItem shortItem = new ShortItem (item.getSkuId(), item.getItemName(), item.getDescription(), item.getQuantity(), item.getShippingCompany().getShippingCompanyName());</span>
+<span class="nc" id="L93">            items.add(shortItem);</span>
+<span class="nc" id="L94">        }</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        for (ShippingCompany shippingCompany : shippingCompanies) {</span>
+<span class="nc" id="L96">            this.shippingCompanies.add(shippingCompany.getShippingCompanyName());</span>
+<span class="nc" id="L97">        }</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        for  (Driver driver : drivers) {</span>
+<span class="nc" id="L99">            this.drivers.add(driver.getFirstName());</span>
+<span class="nc" id="L100">        }</span>
+<span class="nc" id="L101">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

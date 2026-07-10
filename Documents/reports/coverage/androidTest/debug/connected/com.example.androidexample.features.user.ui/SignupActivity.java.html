@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SignupActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.user.ui</a> &gt; <span class="el_source">SignupActivity.java</span></div><h1>SignupActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.user.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.features.navigation.ui.HomeActivity;
+import com.example.androidexample.features.navigation.ui.MainActivity;
+import com.example.androidexample.R;
+import com.example.androidexample.VolleySingleton;
+import com.google.android.material.textfield.TextInputEditText;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
+
+<span class="nc" id="L31">public class SignupActivity extends AppCompatActivity implements View.OnClickListener {</span>
+
+    // UI components
+    private Button signupButton, loginbutton;
+    private TextView errorMesaggeBox;
+    private TextInputEditText passwordInputBox, passwordInputBox2, usernameInputBox, nameInputBox, emailInputBox, phoneNumberInputBox, ssnInputBox;
+    private static final String URL_STRING_REQ = &quot;http://coms-3090-013.class.las.iastate.edu:8080/employee/signup&quot;;
+
+    /**
+     * Creates and initializes the ui elements from the xml fiel DOM
+     * @param savedInstanceState
+     */
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L46">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L47">        setContentView(R.layout.activity_signup_page);</span>
+
+<span class="nc" id="L49">        signupButton = findViewById(R.id.signupButton);</span>
+<span class="nc" id="L50">        loginbutton = findViewById(R.id.loginButton);</span>
+
+<span class="nc" id="L52">        passwordInputBox = findViewById(R.id.passwordInput);</span>
+<span class="nc" id="L53">        passwordInputBox2 = findViewById(R.id.passwordInput2);</span>
+<span class="nc" id="L54">        nameInputBox = findViewById(R.id.nameInput);</span>
+<span class="nc" id="L55">        emailInputBox = findViewById(R.id.emailInput);</span>
+<span class="nc" id="L56">        phoneNumberInputBox = findViewById(R.id.phoneNumberInput);</span>
+<span class="nc" id="L57">        ssnInputBox = findViewById(R.id.ssnInput);</span>
+
+<span class="nc" id="L59">        usernameInputBox = findViewById(R.id.usernameInput);</span>
+<span class="nc" id="L60">        errorMesaggeBox = findViewById(R.id.errorMessageView);</span>
+
+
+
+
+        /* button click listeners */
+<span class="nc" id="L66">        signupButton.setOnClickListener(this);</span>
+<span class="nc" id="L67">        loginbutton.setOnClickListener(this);</span>
+
+
+<span class="nc" id="L70">    }</span>
+
+    /**
+     *  Triggered on click of an element with the clickable property. on click of signup button, signs user up with specified info. on click of home button switches to homescreen.
+     * @param v the button that was pressed
+     */
+    @Override
+    public void onClick(View v) {
+<span class="nc" id="L78">        int id = v.getId();</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (id == R.id.signupButton) {</span>
+<span class="nc" id="L80">            String userName = String.valueOf(usernameInputBox.getText());</span>
+<span class="nc" id="L81">            String passwordInput = String.valueOf(passwordInputBox.getText());</span>
+<span class="nc" id="L82">            String passwordInput2 = String.valueOf(passwordInputBox2.getText());</span>
+            
+
+
+<span class="nc" id="L86">            String fullName = String.valueOf(nameInputBox.getText());</span>
+<span class="nc" id="L87">            String firstName = &quot;&quot;;</span>
+<span class="nc" id="L88">            String lastName = &quot;&quot;;</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if(!(fullName.contains(&quot; &quot;))){</span>
+<span class="nc" id="L90">                errorMesaggeBox.setText(&quot;Please enter a first and last name&quot;);</span>
+            }
+<span class="nc bnc" id="L92" title="All 4 branches missed.">            if (fullName != null &amp;&amp; fullName.contains(&quot; &quot;)) {</span>
+<span class="nc" id="L93">                firstName = fullName.substring(0, fullName.indexOf(&quot; &quot;));</span>
+<span class="nc" id="L94">                lastName = fullName.substring(fullName.indexOf(&quot; &quot;) + 1);</span>
+            } else {
+<span class="nc bnc" id="L96" title="All 2 branches missed.">                firstName = fullName != null ? fullName : &quot;&quot;;</span>
+<span class="nc" id="L97">                lastName = &quot;&quot;;</span>
+            }
+
+<span class="nc" id="L100">            String email = String.valueOf(emailInputBox.getText());</span>
+<span class="nc" id="L101">            String phoneNumber = String.valueOf(phoneNumberInputBox.getText());</span>
+<span class="nc" id="L102">            String ssn = String.valueOf(ssnInputBox.getText());</span>
+
+
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            if(!(passwordInput.equals(passwordInput2))){</span>
+<span class="nc" id="L106">                errorMesaggeBox.setText(&quot;Passwords Do Not Match&quot;);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            } else if(userName.isEmpty()){</span>
+<span class="nc" id="L108">                errorMesaggeBox.setText(&quot;User Name Is Empty&quot;);</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            } else if(passwordInput.isEmpty()){</span>
+<span class="nc" id="L110">                errorMesaggeBox.setText(&quot;Password is empty&quot;);</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            } else if (!(ssn.matches(&quot;^\\d{3}[- ]?\\d{2}[- ]?\\d{4}$&quot;))){</span>
+<span class="nc" id="L112">                errorMesaggeBox.setText(&quot;Please enter a valid ssn&quot;);</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">            } else if (!(phoneNumber.matches(&quot;^(\\+\\d{1,2}\\s)?\\(?\\d{3}\\)?[\\s.-]\\d{3}[\\s.-]\\d{4}$&quot;))) {</span>
+<span class="nc" id="L114">                errorMesaggeBox.setText(&quot;Please enter a valid phone number&quot;);</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">            }else if (!(email.matches(&quot;[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,6}&quot;))) {</span>
+<span class="nc" id="L116">                errorMesaggeBox.setText(&quot;Please enter a valid email&quot;);</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            }else if(!(userName.matches(&quot;[a-zA-Z0-9]+&quot;))){</span>
+<span class="nc" id="L118">                errorMesaggeBox.setText(&quot;Username may only contain letters and numbers&quot;);</span>
+            }
+
+            else {
+                try{
+<span class="nc" id="L123">                    JSONObject jsonBody = new JSONObject();</span>
+<span class="nc" id="L124">                    jsonBody.put(&quot;ssn&quot;, ssn);</span>
+<span class="nc" id="L125">                    jsonBody.put(&quot;firstName&quot;, firstName);</span>
+<span class="nc" id="L126">                    jsonBody.put(&quot;lastName&quot;, lastName);</span>
+<span class="nc" id="L127">                    jsonBody.put(&quot;userName&quot;, userName);</span>
+<span class="nc" id="L128">                    jsonBody.put(&quot;email&quot;, email);</span>
+<span class="nc" id="L129">                    jsonBody.put(&quot;phoneNumber&quot;, phoneNumber);</span>
+<span class="nc" id="L130">                    jsonBody.put(&quot;password&quot;, passwordInput);</span>
+<span class="nc" id="L131">                    sendUserPassAndUserToDB(jsonBody);</span>
+
+<span class="nc" id="L133">                } catch (JSONException e) {</span>
+<span class="nc" id="L134">                    e.printStackTrace();</span>
+<span class="nc" id="L135">                }</span>
+
+            }
+
+
+<span class="nc" id="L140">        }</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        else if(id == R.id.loginButton){</span>
+<span class="nc" id="L142">            startActivity(new Intent(SignupActivity.this, LoginActivity.class));</span>
+
+        }
+<span class="nc" id="L145">    }</span>
+
+    /**
+     * Sends an http post request with the users info to the backend.
+     * @param jsonBody to hold the users info that will be stored in the database
+     */
+    private void  sendUserPassAndUserToDB(JSONObject jsonBody) {
+
+<span class="nc" id="L153">        final String mRequestBody = jsonBody.toString();</span>
+
+<span class="nc" id="L155">        StringRequest stringRequest = new StringRequest(</span>
+                Request.Method.POST,
+                URL_STRING_REQ,
+<span class="nc" id="L158">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // Handle the successful response here
+<span class="nc" id="L162">                        Log.d(&quot;Account Created Successfully&quot;, response);</span>
+<span class="nc" id="L163">                        errorMesaggeBox.setText(response.toString());</span>
+<span class="nc" id="L164">                        startActivity(new Intent(SignupActivity.this, LoginActivity.class));</span>
+<span class="nc" id="L165">                    }</span>
+                },
+<span class="nc" id="L167">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc bnc" id="L170" title="All 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="nc" id="L171">                            String body = new String(error.networkResponse.data);</span>
+<span class="nc" id="L172">                            Log.e(&quot;Error&quot;, &quot;Status: &quot; + error.networkResponse.statusCode + &quot; Body: &quot; + body);</span>
+<span class="nc" id="L173">                            errorMesaggeBox.setText(&quot;Error &quot; + error.networkResponse.statusCode + &quot;: &quot; + body);</span>
+<span class="nc" id="L174">                        } else {</span>
+<span class="nc" id="L175">                            Log.e(&quot;Account Creation Error&quot;, error.toString());</span>
+<span class="nc" id="L176">                            errorMesaggeBox.setText(error.toString());</span>
+                        }
+<span class="nc" id="L178">                    }</span>
+                }
+<span class="nc" id="L180">        ) {</span>
+
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L184">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                try {
+<span class="nc bnc" id="L190" title="All 2 branches missed.">                    return mRequestBody == null ? null : mRequestBody.getBytes(&quot;utf-8&quot;);</span>
+<span class="nc" id="L191">                } catch (UnsupportedEncodingException uee) {</span>
+<span class="nc" id="L192">                    VolleyLog.d(&quot;Unsupported Encoding while trying to get the bytes of %s using %s&quot;, mRequestBody, &quot;utf-8&quot;);</span>
+<span class="nc" id="L193">                    return null;</span>
+                }
+            }
+
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L199">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+//                headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L202">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L207">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+//                params.put(&quot;param1&quot;, &quot;value1&quot;);
+//                params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L210">                return params;</span>
+            }
+        };
+
+        // Adding request to request queue
+<span class="nc" id="L215">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L216">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

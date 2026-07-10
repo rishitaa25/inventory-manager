@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserProfileActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.user.ui</a> &gt; <span class="el_source">UserProfileActivity.java</span></div><h1>UserProfileActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.user.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Spinner;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.androidexample.R;
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+import com.example.androidexample.features.navigation.ui.HomeActivity;
+import com.example.androidexample.features.navigation.ui.LaunchActivity;
+import com.example.androidexample.features.notifications.websocket.NotificationWebsocketService;
+import com.example.androidexample.features.user.data.SessionManager;
+import com.example.androidexample.features.user.enums.AccessLevel;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+<span class="nc" id="L36">public class UserProfileActivity extends AppCompatActivity {</span>
+
+    // Ui Components
+    private ImageView profile, menu, editUser, logout;
+    private TextView userId, username, logoutMessage;
+<span class="nc" id="L41">    private boolean  logoutConfirmed = false;</span>
+
+    private static final String BASE_URL = &quot;http://coms-3090-013.class.las.iastate.edu:8080/&quot;;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L47">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L48">        setContentView(R.layout.activity_user_profile);</span>
+
+<span class="nc" id="L50">        profile = findViewById(R.id.profile_icon);</span>
+<span class="nc" id="L51">        menu = findViewById(R.id.menu_icon);</span>
+<span class="nc" id="L52">        editUser = findViewById(R.id.edit_icon);</span>
+<span class="nc" id="L53">        userId = findViewById(R.id.detail_user_id);</span>
+<span class="nc" id="L54">        username = findViewById(R.id.detail_username);</span>
+<span class="nc" id="L55">        logout = findViewById(R.id.logout_icon);</span>
+<span class="nc" id="L56">        logoutMessage = findViewById(R.id.logout_message);</span>
+
+
+        // Hide profile icon
+<span class="nc" id="L60">        profile.setVisibility(View.GONE);</span>
+
+        // set banner
+<span class="nc" id="L63">        BannerHelper.setupBanner(this, profile, menu);</span>
+
+        // User actions
+<span class="nc" id="L66">        editUser.setOnClickListener(view -&gt; {</span>
+<span class="nc" id="L67">                startActivity(new Intent(UserProfileActivity.this, EditUserActivity.class));</span>
+<span class="nc" id="L68">        });</span>
+
+<span class="nc" id="L70">        logout.setOnClickListener(view -&gt; {</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">            if (!logoutConfirmed) {</span>
+<span class="nc" id="L72">                logoutMessage.setText(&quot;Are you sure you want to log out?&quot;);</span>
+<span class="nc" id="L73">                logoutMessage.setBackground(getResources().getDrawable(R.drawable.background_text_blue));</span>
+<span class="nc" id="L74">                logoutMessage.setTextColor(getResources().getColor(R.color.im_sky_blue));</span>
+<span class="nc" id="L75">                new Handler().postDelayed(() -&gt; {</span>
+<span class="nc" id="L76">                    logoutMessage.setText(&quot;&quot;);</span>
+<span class="nc" id="L77">                    logoutMessage.setBackgroundResource(0);</span>
+<span class="nc" id="L78">                }, 2000);</span>
+<span class="nc" id="L79">                logoutConfirmed = true;</span>
+<span class="nc" id="L80">                return;</span>
+            }
+
+            // once confirmed, make logout request
+            try {
+<span class="nc" id="L85">                makeLogoutRequest();</span>
+<span class="nc" id="L86">            } catch (JSONException e) {</span>
+<span class="nc" id="L87">                throw new RuntimeException(e);</span>
+<span class="nc" id="L88">            }</span>
+
+<span class="nc" id="L90">        });</span>
+
+
+        // User Info
+<span class="nc" id="L94">        userId.setText(String.valueOf(SessionManager.getUserId()));</span>
+<span class="nc" id="L95">        username.setText(SessionManager.getUsername());</span>
+
+<span class="nc" id="L97">    }</span>
+
+        /**
+         * Sends a POST request to the server to attempt a logging out.
+         *
+         *
+         * If the logout is successful:
+         * - SessionManager will be cleared
+         * - it will display the success message.
+         * - the app will redirect to the launch page
+         *
+         * Otherwise, an error message is displayed and logged.
+         */
+        private void makeLogoutRequest() throws JSONException {
+
+<span class="nc" id="L112">        Log.d(&quot;LOGOUT&quot;, &quot;Preparing request...&quot;);</span>
+
+
+        // decide which url to use
+<span class="nc" id="L116">        String ENDPOINT = &quot;&quot;;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (SessionManager.getAccessLevel() == AccessLevel.ADMIN)</span>
+<span class="nc" id="L118">            ENDPOINT = &quot;admin/&quot;;</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        else if (SessionManager.getAccessLevel() == AccessLevel.EMPLOYEE)</span>
+<span class="nc" id="L120">            ENDPOINT = &quot;employee/&quot;;</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        else if (SessionManager.getAccessLevel() == AccessLevel.DRIVER)</span>
+<span class="nc" id="L122">            ENDPOINT = &quot;driver/&quot;;</span>
+
+
+<span class="nc" id="L125">        StringRequest request = new StringRequest(</span>
+                Request.Method.POST,
+                BASE_URL + ENDPOINT + &quot;logout&quot;,
+
+                response -&gt; {
+<span class="nc" id="L130">                    Log.d(&quot;LOGOUT_RAW_RESPONSE&quot;, response.toString());</span>
+
+<span class="nc" id="L132">                    logoutMessage.setBackground(getResources().getDrawable(R.drawable.background_text_blue));</span>
+<span class="nc" id="L133">                    logoutMessage.setTextColor(getResources().getColor(R.color.im_sky_blue));</span>
+<span class="nc" id="L134">                    logoutMessage.setText(response.toString());</span>
+
+                    // Stop the websocket service and clear the session
+<span class="nc" id="L137">                    stopService(new Intent(this, NotificationWebsocketService.class));</span>
+<span class="nc" id="L138">                    SessionManager.clearSession();</span>
+
+<span class="nc" id="L140">                    new Handler().postDelayed(() -&gt;</span>
+<span class="nc" id="L141">                        startActivity(new Intent(UserProfileActivity.this, LaunchActivity.class)), 1000);</span>
+
+<span class="nc" id="L143">                },</span>
+
+                error -&gt; {
+<span class="nc" id="L146">                    Log.e(&quot;LOGOUT_ERROR&quot;, error.toString());</span>
+
+<span class="nc bnc" id="L148" title="All 2 branches missed.">                    if (error.networkResponse != null) {</span>
+<span class="nc" id="L149">                        Log.e(&quot;LOGOUT_STATUS_CODE&quot;, String.valueOf(error.networkResponse.statusCode));</span>
+                    }
+<span class="nc" id="L151">                }</span>
+
+
+<span class="nc" id="L154">        ) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L157">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                //Log.d(&quot;LOGOUT_TOKEN&quot;, SessionManager.getToken());
+<span class="nc" id="L159">                headers.put(&quot;Authorization&quot;, &quot;Bearer &quot; + SessionManager.getToken());</span>
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L161">                return headers;</span>
+            }
+        };
+
+
+<span class="nc" id="L166">        Volley.newRequestQueue(this).add(request);</span>
+<span class="nc" id="L167">    }</span>
+
+    private void makeUserInfoRequest(){
+        // TODO make request to get user info
+<span class="nc" id="L171">    }</span>
+
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

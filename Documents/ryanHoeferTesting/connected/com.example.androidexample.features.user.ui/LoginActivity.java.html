@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LoginActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.user.ui</a> &gt; <span class="el_source">LoginActivity.java</span></div><h1>LoginActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.user.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.androidexample.R;
+import com.example.androidexample.features.navigation.ui.HomeActivity;
+import com.example.androidexample.features.notifications.websocket.NotificationWebsocketService;
+import com.example.androidexample.features.user.data.SessionManager;
+import com.example.androidexample.features.user.enums.AccessLevel;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+/**
+ * Login activity for the application.
+ *
+ * This activity allows users to log in to the application by prompting the user for
+ * their username and password. If the login is successful, a session is created using
+ * the SessionManager and the user is redirected to the main activity. If the login fails,
+ * an error message is displayed.
+ *
+ * This class uses HTTP POST requests to communicate with the backend server.
+ *
+ * @author Olivia Blais
+ */
+<span class="fc" id="L41">public class LoginActivity extends AppCompatActivity {</span>
+
+    private TextView loginMessage;
+    private EditText usernameEnter, passwordEnter;
+    private Button loginButton, signupButton;
+    private Spinner accountTypeSpinner;
+<span class="fc" id="L47">    private String accountType = &quot;&quot;;</span>
+
+    private static final String BASE_URL = &quot;http://coms-3090-013.class.las.iastate.edu:8080/&quot;;
+    private static final String ADMIN_ENDPOINT = &quot;admin/login&quot;;
+    private static final String EMPLOYEE_ENDPOINT = &quot;employee/login&quot;;
+    private static final String DRIVER_ENDPOINT = &quot;driver/login&quot;;
+
+    /**
+     * Initializes the login activity and handles user input.
+     *
+     * @param savedInstanceState
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L61">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L62">        setContentView(R.layout.activity_login);</span>
+
+<span class="fc" id="L64">        loginMessage = findViewById(R.id.login_mesg);</span>
+<span class="fc" id="L65">        passwordEnter = findViewById(R.id.login_password);</span>
+<span class="fc" id="L66">        loginButton = findViewById(R.id.login_button);</span>
+<span class="fc" id="L67">        signupButton = findViewById(R.id.signup_button);</span>
+<span class="fc" id="L68">        usernameEnter = findViewById(R.id.login_username);</span>
+<span class="fc" id="L69">        accountTypeSpinner = findViewById(R.id.login_account_type_spinner);</span>
+
+<span class="fc" id="L71">        setupAccountTypeSpinner();</span>
+
+<span class="fc" id="L73">        loginButton.setOnClickListener(view -&gt; {</span>
+<span class="fc" id="L74">            String username = usernameEnter.getText().toString();</span>
+<span class="fc" id="L75">            String password = passwordEnter.getText().toString();</span>
+
+<span class="pc bpc" id="L77" title="2 of 4 branches missed.">            if (username.isEmpty() || password.isEmpty()) {</span>
+<span class="nc" id="L78">                loginMessage.setText(&quot;Please enter username and password&quot;);</span>
+<span class="nc" id="L79">                return;</span>
+            }
+
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">            if (accountType.isEmpty()) {</span>
+<span class="nc" id="L83">                loginMessage.setText(&quot;Please select an account type&quot;);</span>
+<span class="nc" id="L84">                return;</span>
+            }
+
+            try {
+<span class="fc bfc" id="L88" title="All 2 branches covered.">                if (accountType.equals(&quot;Admin&quot;))</span>
+<span class="fc" id="L89">                    makeLoginRequest(username, password, BASE_URL + ADMIN_ENDPOINT);</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">                else if (accountType.equals(&quot;Employee&quot;))</span>
+<span class="fc" id="L91">                    makeLoginRequest(username, password, BASE_URL + EMPLOYEE_ENDPOINT);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                else if (accountType.equals(&quot;Driver&quot;))</span>
+<span class="nc" id="L93">                    makeLoginRequest(username, password, BASE_URL + DRIVER_ENDPOINT);</span>
+<span class="nc" id="L94">            } catch (JSONException e) {</span>
+<span class="nc" id="L95">                loginMessage.setText(&quot;Invalid server response&quot;);</span>
+<span class="nc" id="L96">                throw new RuntimeException(e);</span>
+<span class="fc" id="L97">            }</span>
+<span class="fc" id="L98">        });</span>
+
+<span class="fc" id="L100">        signupButton.setOnClickListener(view -&gt;</span>
+<span class="nc" id="L101">                startActivity(new Intent(LoginActivity.this, SignupActivity.class)));</span>
+<span class="fc" id="L102">    }</span>
+
+    /**
+     * Sets up the account type spinner with options for admin, employee, and driver.
+     * Updates the accountType field when the user makes a selection.
+     */
+    private void setupAccountTypeSpinner() {
+<span class="fc" id="L109">        String[] accountTypes = {&quot;Select Account Type&quot;, &quot;Admin&quot;, &quot;Employee&quot;, &quot;Driver&quot;};</span>
+
+<span class="fc" id="L111">        ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;&gt;(</span>
+                this,
+                android.R.layout.simple_spinner_item,
+                accountTypes
+        );
+<span class="fc" id="L116">        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);</span>
+<span class="fc" id="L117">        accountTypeSpinner.setAdapter(adapter);</span>
+
+<span class="fc" id="L119">        accountTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {</span>
+            @Override
+            public void onItemSelected(AdapterView&lt;?&gt; parent, View view, int position, long id) {
+<span class="fc" id="L122">                String selected = parent.getItemAtPosition(position).toString();</span>
+
+<span class="fc bfc" id="L124" title="All 2 branches covered.">                if (position == 0) {</span>
+<span class="fc" id="L125">                    accountType = &quot;&quot;;</span>
+                } else {
+<span class="fc" id="L127">                    accountType = selected;</span>
+                }
+<span class="fc" id="L129">            }</span>
+
+            @Override
+            public void onNothingSelected(AdapterView&lt;?&gt; parent) {
+<span class="nc" id="L133">                accountType = &quot;&quot;;</span>
+<span class="nc" id="L134">            }</span>
+        });
+<span class="fc" id="L136">    }</span>
+
+    /**
+     * Sends a POST request to the server to attempt a login.
+     *
+     * The username and password are sent as a JSON body.
+     *
+     * If the login is successful:
+     * - user information is extracted from the response
+     * - it will store the session in SessionManager
+     * - it will display the success message.
+     * - The user is then redirected to the main activity.
+     *
+     * Otherwise, an error message is displayed and logged.
+     *
+     * @param username    the username entered by the user
+     * @param password    the password entered by the user
+     * @param SELECTED_URL the endpoint URL based on account type
+     */
+    public void makeLoginRequest(String username, String password, String SELECTED_URL) throws JSONException {
+
+<span class="fc" id="L157">        Log.d(&quot;LOGIN&quot;, &quot;Preparing request...&quot;);</span>
+<span class="fc" id="L158">        Log.d(&quot;LOGIN_USERNAME&quot;, username);</span>
+<span class="fc" id="L159">        Log.d(&quot;LOGIN_PASSWORD&quot;, password);</span>
+
+<span class="fc" id="L161">        JSONObject jsonBody = new JSONObject();</span>
+<span class="fc" id="L162">        jsonBody.put(&quot;userName&quot;, username);</span>
+<span class="fc" id="L163">        jsonBody.put(&quot;password&quot;, password);</span>
+
+<span class="fc" id="L165">        JsonObjectRequest request = new JsonObjectRequest(</span>
+                Request.Method.POST,
+                SELECTED_URL,
+                jsonBody,
+
+                response -&gt; {
+<span class="fc" id="L171">                    Log.d(&quot;LOGIN_RAW_RESPONSE&quot;, response.toString());</span>
+
+                    try {
+<span class="fc" id="L174">                        SessionManager.saveSession(response.getString(&quot;token&quot;),</span>
+<span class="fc" id="L175">                                response.getInt(&quot;employeeId&quot;), AccessLevel.valueOf(response.getString(&quot;accessLevel&quot;)), username);</span>
+
+<span class="fc" id="L177">                        String message = response.getString(&quot;message&quot;);</span>
+<span class="fc" id="L178">                        String firstName = response.getString(&quot;firstName&quot;);</span>
+<span class="fc" id="L179">                        String lastName = response.getString(&quot;lastName&quot;);</span>
+<span class="fc" id="L180">                        String accessLevelString = response.getString(&quot;accessLevel&quot;);</span>
+<span class="fc" id="L181">                        AccessLevel accessLevel = AccessLevel.valueOf(accessLevelString);</span>
+<span class="fc" id="L182">                        String token = response.getString(&quot;token&quot;);</span>
+
+<span class="fc" id="L184">                        loginMessage.setText(message + &quot;\nWelcome &quot; + firstName + &quot; &quot; + lastName);</span>
+<span class="fc" id="L185">                        Log.d(&quot;LOGIN_SUCCESS&quot;, &quot;Login successful&quot;);</span>
+<span class="fc" id="L186">                        Log.d(&quot;LOGIN_TOKEN&quot;, token);</span>
+<span class="fc" id="L187">                        Log.d(&quot;LOGIN_FIRST_NAME&quot;, firstName);</span>
+<span class="fc" id="L188">                        Log.d(&quot;LOGIN_LAST_NAME&quot;, lastName);</span>
+<span class="fc" id="L189">                        Log.d(&quot;LOGIN_ACCESS_LEVEL&quot;, accessLevel.toString());</span>
+
+                        // connect to websocket
+<span class="fc" id="L192">                        String[] wsKeys = {&quot;shipments&quot;, &quot;admin&quot;, &quot;inventory&quot;};</span>
+<span class="fc" id="L193">                        String[] wsUrls = {</span>
+                                &quot;ws://coms-3090-013.class.las.iastate.edu:8080/shipments/&quot; + username,
+                                &quot;ws://coms-3090-013.class.las.iastate.edu:8080/admin-notifications/&quot; + username,
+                                &quot;ws://coms-3090-013.class.las.iastate.edu:8080/inventory/&quot; + username
+                        };
+
+<span class="fc bfc" id="L199" title="All 2 branches covered.">                        for (int i = 0; i &lt; wsKeys.length; i++) {</span>
+<span class="fc" id="L200">                            Intent wsIntent = new Intent(this, NotificationWebsocketService.class);</span>
+<span class="fc" id="L201">                            wsIntent.setAction(&quot;CONNECT&quot;);</span>
+<span class="fc" id="L202">                            wsIntent.putExtra(&quot;key&quot;, wsKeys[i]);</span>
+<span class="fc" id="L203">                            wsIntent.putExtra(&quot;url&quot;, wsUrls[i]);</span>
+<span class="fc" id="L204">                            startService(wsIntent);</span>
+                        }
+//                        Intent intent = new Intent(this, NotificationWebsocketService.class);
+//                        intent.setAction(&quot;CONNECT&quot;);
+//                        intent.putExtra(&quot;key&quot;, username);
+//                        intent.putExtra(&quot;url&quot;, &quot;ws://coms-3090-013.class.las.iastate.edu:8080/shipments/&quot; + username);
+//                        startService(intent);
+
+<span class="fc" id="L212">                        new Handler().postDelayed(() -&gt;</span>
+<span class="fc" id="L213">                                startActivity(new Intent(LoginActivity.this, HomeActivity.class)), 1000);</span>
+
+<span class="nc" id="L215">                    } catch (JSONException e) {</span>
+<span class="nc" id="L216">                        Log.e(&quot;LOGIN_PARSE_ERROR&quot;, &quot;Response parsing failed&quot;, e);</span>
+<span class="nc" id="L217">                        loginMessage.setText(&quot;Login failed. Check username/password.&quot;);</span>
+<span class="fc" id="L218">                    }</span>
+<span class="fc" id="L219">                },</span>
+
+                error -&gt; {
+<span class="nc" id="L222">                    Log.e(&quot;LOGIN_ERROR&quot;, error.toString());</span>
+
+<span class="nc bnc" id="L224" title="All 2 branches missed.">                    if (error.networkResponse != null) {</span>
+<span class="nc" id="L225">                        Log.e(&quot;LOGIN_STATUS_CODE&quot;, String.valueOf(error.networkResponse.statusCode));</span>
+                    }
+
+<span class="nc" id="L228">                    loginMessage.setText(&quot;Login failed. Check username/password.&quot;);</span>
+<span class="nc" id="L229">                }</span>
+        );
+
+<span class="fc" id="L232">        Volley.newRequestQueue(this).add(request);</span>
+<span class="fc" id="L233">    }</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

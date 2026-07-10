@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmployeeController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.mainApplicationClasses</a> &gt; <span class="el_source">EmployeeController.java</span></div><h1>EmployeeController.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.mainApplicationClasses;
+
+import org.example.inventory_manager_beta1.Configuration.Annotation.RequiresAccess;
+import org.example.inventory_manager_beta1.DTO.Employees.Login.*;
+import org.example.inventory_manager_beta1.DTO.Employees.SignUp.*;
+import org.example.inventory_manager_beta1.DTO.Employees.Update.*;
+import org.example.inventory_manager_beta1.DataEnums.AccessLevel;
+import org.example.inventory_manager_beta1.entities.Employee;
+import org.example.inventory_manager_beta1.entities.Shift;
+import org.example.inventory_manager_beta1.services.EmployeeService;
+import org.example.inventory_manager_beta1.services.ShiftService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
+import java.util.List;
+
+/**
+ * A controller class containing all the different HTTP mappings for Employee related methods
+ */
+@RestController
+@RequestMapping(&quot;/employee&quot;)
+<span class="fc" id="L23">public class EmployeeController {</span>
+    /**
+     * The auto-injected EmployeeService class for handling Employee related logic
+     */
+    @Autowired
+    private EmployeeService employeeService;
+    /**
+     * The auto-injected ShiftService class for handling Shift related logic
+     */
+    @Autowired
+    private ShiftService shiftService;
+
+    /**
+     * CREATE: A controller method for handling Employee creation
+     * @param signUpRequest
+     *  The DTO containing the Employee information in JSON format
+     * @return
+     *  A message confirming if the sign-up is successful
+     */
+    @PostMapping(&quot;/signup&quot;)
+<span class="fc" id="L43">    public SignUpResponse employeeSignup (@RequestBody SignUpRequest signUpRequest) {return employeeService.registerEmployee(signUpRequest);}</span>
+
+    /**
+     *
+     * @param loginRequest
+     * @return
+     */
+    @PostMapping(&quot;/login&quot;)
+<span class="nc" id="L51">    public LoginResponse login (@RequestBody LoginRequest loginRequest) {return employeeService.employeeLogin(loginRequest);}</span>
+
+    /**
+     *
+     * @param authHeader
+     * @return
+     */
+    @PostMapping(&quot;/logout&quot;)
+<span class="nc" id="L59">    public ResponseEntity&lt;String&gt; employeeLogout (@RequestHeader(value = &quot;Authorization&quot;, required = false) String authHeader) {return ResponseEntity.ok(employeeService.employeeLogout(authHeader));}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Employee
+     * @param employeeId
+     *  The EmployeeID of the Employee
+     * @return
+     *  The Employee with the matching ID if they exist
+     */
+    @RequiresAccess(AccessLevel.EMPLOYEE)
+    @GetMapping(&quot;/find-by/id/{employeeId}&quot;)
+<span class="nc" id="L70">    public Employee getEmployeeViaId(@PathVariable(&quot;employeeId&quot;) Integer employeeId) {return employeeService.findById(employeeId);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Employee
+     * @param employeeSSN
+     *  The SSN of the specific Employee
+     * @return
+     *  The Employee with the matching SSN if they exist
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @GetMapping(&quot;find-by/ssn/{employeeSSN}&quot;)
+<span class="nc" id="L81">    public Employee getEmployeeViaSSN(@PathVariable(&quot;employeeSSN&quot;) String employeeSSN) {return employeeService.findBySSN(employeeSSN);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Employee
+     * @param employeeUserName
+     *  The username of the Employee
+     * @return
+     *  The Employee with the matching username if they exist
+     */
+    @RequiresAccess(AccessLevel.EMPLOYEE)
+    @GetMapping(&quot;/find-by/username/{employeeUserName}&quot;)
+<span class="nc" id="L92">    public Employee getEmployeeViaUserName(@PathVariable String employeeUserName) {return employeeService.findByUserName(employeeUserName);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Employee
+     * @param employeeFirstName
+     *  The first name of the specific Employee
+     * @return
+     *  A List of Employee(s) with a matching first name
+     */
+    @RequiresAccess(AccessLevel.EMPLOYEE)
+    @GetMapping(&quot;find-by/first-name/{employeeFirstName}&quot;)
+<span class="nc" id="L103">    public List&lt;Employee&gt; getEmployeeViaFirstName(@PathVariable(&quot;employeeFirstName&quot;) String employeeFirstName) {return employeeService.findByFirstName(employeeFirstName);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Employee
+     * @param employeeLastName
+     *  The last name of the specific Employee
+     * @return
+     *  A List of Employee(s) with a matching last name
+     */
+    @RequiresAccess(AccessLevel.EMPLOYEE)
+    @GetMapping(&quot;find-by/last-name/{employeeLastName}&quot;)
+<span class="nc" id="L114">    public List&lt;Employee&gt; getEmployeeViaLastName(@PathVariable(&quot;employeeLastName&quot;) String employeeLastName) {return employeeService.findByLastName(employeeLastName);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Employee
+     * @param employeeEmail
+     *  The email of the specific Employee
+     * @return
+     *  The Employee with the matching email if they exist
+     */
+    @RequiresAccess(AccessLevel.EMPLOYEE)
+    @GetMapping(&quot;find-by/email/{employeeEmail}&quot;)
+<span class="nc" id="L125">    public Employee getEmployeeViaEmail(@PathVariable(&quot;employeeEmail&quot;) String employeeEmail) {return employeeService.findByEmail(employeeEmail);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Employee
+     * @param employeePhoneNumber
+     *  The phone number of the specific Employee
+     * @return
+     *  The Employee with the matching phone number if they exist
+     */
+    @RequiresAccess(AccessLevel.EMPLOYEE)
+    @GetMapping(&quot;find-by/phone-number/{employeePhoneNumber}&quot;)
+<span class="nc" id="L136">    public Employee getEmployeeViaPhoneNumber(@PathVariable(&quot;employeePhoneNumber&quot;) String employeePhoneNumber) {return employeeService.findByPhoneNumber(employeePhoneNumber);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific Employee
+     * @param employeeAccessLevel
+     *  The access level of the specific Employee
+     * @return
+     *  A List of Employee(s) with a matching access level
+     */
+    @RequiresAccess(AccessLevel.EMPLOYEE)
+    @GetMapping(&quot;find-by/access-level/{employeeAccessLevel}&quot;)
+<span class="nc" id="L147">    public List&lt;Employee&gt; getEmployeeViaAccessLevel(@PathVariable(&quot;employeeAccessLevel&quot;) AccessLevel employeeAccessLevel) {return employeeService.findByAccessLevel(employeeAccessLevel);}</span>
+
+    /**
+     * READ: A controller method for handling searching for all Employee
+     * @return
+     *  A list containing all current Employees
+     */
+    @RequiresAccess(AccessLevel.EMPLOYEE)
+    @GetMapping(&quot;/find/all&quot;)
+<span class="nc" id="L156">    public List&lt;Employee&gt; employees() {return employeeService.findAll();}</span>
+
+    /**
+     * READ: A controller method that handles getting all shifts for a specific Employee
+     * @param employeeId
+     *  The ID of the Employee
+     * @return
+     *  A list of shifts for the matching Employee
+     */
+    @RequiresAccess(AccessLevel.EMPLOYEE)
+    @GetMapping(&quot;/{employeeId}/all-shifts&quot;)
+<span class="nc" id="L167">    public List&lt;Shift&gt; getShifts(@PathVariable(&quot;employeeId&quot;) Integer employeeId) {return shiftService.findAllEmployeeShifts(employeeId);}</span>
+
+    /**
+     * READ: A controller method that handles getting weekly shifts for a specific Employee
+     * @param employeeId
+     *  The ID of the Employee
+     * @param startDay
+     *  The start date of the week
+     * @return
+     *  A list of shifts for the matching Employee within the week
+     */
+    @RequiresAccess(AccessLevel.EMPLOYEE)
+    @GetMapping(&quot;/{employeeId}/weekly-shifts/{startDay}&quot;)
+<span class="nc" id="L180">    public List&lt;Shift&gt; getWeeklyShifts(@PathVariable(&quot;employeeId&quot;) Integer employeeId, @PathVariable(&quot;startDay&quot;) LocalDate startDay) {return shiftService.findWeeklyEmployeeShifts(employeeId, startDay);}</span>
+
+    /**
+     * UPDATE: A controller method for handling updating an existing Employee
+     * @param employeeUpdateRequest
+     *  The DTO containing the updated Employee information
+     * @return
+     *  A message confirming a successful information update
+     */
+    @RequiresAccess(AccessLevel.EMPLOYEE)
+    @PutMapping(&quot;/update&quot;)
+<span class="nc" id="L191">    public String updateEmployee(@RequestBody UpdateEmployeeRequest employeeUpdateRequest) {return employeeService.updateEmployee(employeeUpdateRequest).getMessage();}</span>
+
+    /**
+     * DELETE: A controller method for handling specific Employee deletion
+     * @param employeeId
+     *  The ID of the Employee
+     * @return
+     *  True if completed
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @DeleteMapping(&quot;/delete/{employeeId}&quot;)
+    public Boolean deleteEmployee(@PathVariable(&quot;employeeId&quot;) Integer employeeId) {
+<span class="nc" id="L203">        employeeService.deleteEmployee(employeeId);</span>
+<span class="nc" id="L204">        return true;</span>
+    }
+
+    /**
+     * DELETE: A controller method for handling removing all Employees
+     * @return
+     *  True if completed
+     */
+    @RequiresAccess(AccessLevel.ADMIN)
+    @DeleteMapping(&quot;/delete/all&quot;)
+    public Boolean deleteAllEmployees() {
+<span class="nc" id="L215">        employeeService.deleteAllEmployees();</span>
+<span class="nc" id="L216">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ManagerShiftView.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.shifts</a> &gt; <span class="el_source">ManagerShiftView.java</span></div><h1>ManagerShiftView.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.shifts;
+
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CalendarView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.aigestudio.wheelpicker.WheelPicker;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.R;
+import com.example.androidexample.VolleySingleton;
+import com.example.androidexample.features.items.SearchItem;
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+import com.example.androidexample.features.navigation.ui.MainActivity;
+import com.google.android.material.textfield.TextInputEditText;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+<span class="nc" id="L46">public class ManagerShiftView extends AppCompatActivity implements View.OnClickListener{</span>
+    private Button createButton, updateButton, deleteButton, homeButton, selectStartTimeButton, selectEndTimeButton, selectDateButton;
+    private TextView errorMesaggeBox, dateView, startTimeView, endTimeView;
+    private CalendarView calendarView;
+    private TextInputEditText employeeIDBox;
+    private LocalDate selectedDate;
+    private LocalTime endTime,startTime;
+    private ImageView profile, menu;
+<span class="nc" id="L54">    private final int START_TIME = 1;</span>
+<span class="nc" id="L55">    private final int END_TIME = 2;</span>
+
+
+    private static final String URL_DELETE_ITEM = &quot;http://coms-3090-013.class.las.iastate.edu:8080/shift/delete/&quot;;
+    private static final String URL_PUT_ITEM = &quot;http://coms-3090-013.class.las.iastate.edu:8080/shift/update&quot;;
+    private static final String URL_POST_ITEM = &quot;http://coms-3090-013.class.las.iastate.edu:8080/shift/create&quot;;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L64">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L65">        setContentView(R.layout.activity_manager_shift_view);</span>
+
+<span class="nc" id="L67">        createButton = findViewById(R.id.createShiftButton);</span>
+<span class="nc" id="L68">        updateButton = findViewById(R.id.updateShiftButton);</span>
+<span class="nc" id="L69">        deleteButton = findViewById(R.id.deleteShiftButton);</span>
+<span class="nc" id="L70">        homeButton = findViewById(R.id.homeButton2);</span>
+<span class="nc" id="L71">        selectEndTimeButton = findViewById(R.id.selectEndtimeButton);</span>
+<span class="nc" id="L72">        selectStartTimeButton = findViewById(R.id.selectStartTimeButton);</span>
+<span class="nc" id="L73">        selectDateButton = findViewById(R.id.selectDateButton);</span>
+
+<span class="nc" id="L75">        dateView = findViewById(R.id.dateView);</span>
+<span class="nc" id="L76">        startTimeView = findViewById(R.id.startTimeView);</span>
+<span class="nc" id="L77">        endTimeView = findViewById(R.id.endTimeView);</span>
+
+<span class="nc" id="L79">        employeeIDBox = findViewById(R.id.employeeIdInput);</span>
+<span class="nc" id="L80">        errorMesaggeBox = findViewById(R.id.errorMessageView2);</span>
+
+        //banner setup
+<span class="nc" id="L83">        profile = findViewById(R.id.profile_icon);</span>
+<span class="nc" id="L84">        menu = findViewById(R.id.menu_icon);</span>
+<span class="nc" id="L85">        BannerHelper.setupBanner(this, profile, menu);</span>
+
+        /* button click listeners */
+<span class="nc" id="L88">        createButton.setOnClickListener(this);</span>
+
+<span class="nc" id="L90">        updateButton.setOnClickListener(this);</span>
+<span class="nc" id="L91">        deleteButton.setOnClickListener(this);</span>
+<span class="nc" id="L92">        homeButton.setOnClickListener(this);</span>
+
+<span class="nc" id="L94">        selectStartTimeButton.setOnClickListener(view -&gt; displayTimePopup(START_TIME));</span>
+<span class="nc" id="L95">        selectEndTimeButton.setOnClickListener(view -&gt; displayTimePopup(END_TIME));</span>
+<span class="nc" id="L96">        selectDateButton.setOnClickListener(view -&gt; displayCalendarPopup());</span>
+
+
+
+<span class="nc" id="L100">    }</span>
+
+    private void displayTimePopup(int identifier){
+            //create new wheels and populate them with their respective data
+<span class="nc" id="L104">            WheelPicker hoursWheel = new WheelPicker(this);</span>
+<span class="nc" id="L105">            WheelPicker minutesWheel = new WheelPicker(this);</span>
+
+<span class="nc" id="L107">            populateHours(hoursWheel);</span>
+<span class="nc" id="L108">            populateMinutes(minutesWheel);</span>
+
+<span class="nc" id="L110">            setPickerAttributes(hoursWheel);</span>
+<span class="nc" id="L111">            setPickerAttributes(minutesWheel);</span>
+
+<span class="nc" id="L113">            TextView colon = new TextView(this);</span>
+<span class="nc" id="L114">            colon.setText(&quot;:&quot;);</span>
+<span class="nc" id="L115">            colon.setTextSize(30);</span>
+<span class="nc" id="L116">            colon.setGravity(Gravity.CENTER);</span>
+<span class="nc" id="L117">            colon.setPadding(10, 0, 10, 0);</span>
+
+<span class="nc" id="L119">            LinearLayout layout = new LinearLayout(this);</span>
+<span class="nc" id="L120">            layout.setOrientation(LinearLayout.HORIZONTAL);</span>
+
+
+<span class="nc" id="L123">            layout.addView(hoursWheel);</span>
+<span class="nc" id="L124">            layout.addView(colon);</span>
+<span class="nc" id="L125">            layout.addView(minutesWheel);</span>
+<span class="nc" id="L126">            layout.setGravity(Gravity.CENTER);</span>
+
+
+            //build a popup for them
+<span class="nc" id="L130">            new AlertDialog.Builder(this)</span>
+<span class="nc" id="L131">                    .setTitle(&quot;Pick a time&quot;)</span>
+<span class="nc" id="L132">                    .setView(layout)</span>
+<span class="nc" id="L133">                    .setPositiveButton(&quot;OK&quot;, (dialog, which) -&gt; {</span>
+<span class="nc" id="L134">                        int selectedHour = hoursWheel.getCurrentItemPosition()+1;</span>
+<span class="nc" id="L135">                        int selectedMinute = minutesWheel.getCurrentItemPosition();</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                        if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+<span class="nc" id="L137">                            LocalTime time = LocalTime.of(selectedHour,selectedMinute);</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">                            if (identifier == START_TIME) {</span>
+<span class="nc" id="L139">                                startTimeView.setText(time.toString());</span>
+<span class="nc" id="L140">                                startTime = time;</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">                            } else if (identifier == END_TIME) {</span>
+<span class="nc" id="L142">                                endTimeView.setText(time.toString());</span>
+<span class="nc" id="L143">                                endTime = time;</span>
+                            }
+<span class="nc" id="L145">                            Toast.makeText(this, time.toString(), Toast.LENGTH_SHORT).show();</span>
+
+                        }
+
+<span class="nc" id="L149">                        })</span>
+<span class="nc" id="L150">                    .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L151">                    .show();</span>
+
+
+<span class="nc" id="L154">    }</span>
+    private void populateHours(WheelPicker picker){
+<span class="nc" id="L156">        List&lt;String&gt; hours = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        for (int i = 1; i &lt;= 23; i++) hours.add(String.format(&quot;%02d&quot;, i));</span>
+<span class="nc" id="L158">        picker.setData(hours);</span>
+
+<span class="nc" id="L160">    }</span>
+    private void populateMinutes(WheelPicker picker){
+<span class="nc" id="L162">        List&lt;String&gt; minutes = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        for (int i = 0; i &lt; 60; i++) minutes.add(String.format(&quot;%02d&quot;, i));</span>
+<span class="nc" id="L164">        picker.setData(minutes);</span>
+
+<span class="nc" id="L166">    }</span>
+
+    private void setPickerAttributes(WheelPicker picker){
+<span class="nc" id="L169">        picker.setCurved(true);</span>
+<span class="nc" id="L170">        picker.setAtmospheric(true);</span>
+<span class="nc" id="L171">        picker.setForegroundGravity(Gravity.CENTER);</span>
+<span class="nc" id="L172">        picker.setLayoutParams(new ViewGroup.LayoutParams(200,400));</span>
+<span class="nc" id="L173">    }</span>
+
+    private void displayCalendarPopup(){
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.HONEYCOMB) {</span>
+<span class="nc" id="L177">            calendarView = new CalendarView(this);</span>
+
+
+<span class="nc" id="L180">            calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {// get the selected date</span>
+                @Override
+                public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                    if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+<span class="nc" id="L184">                        selectedDate = LocalDate.of(year, month + 1, dayOfMonth);</span>
+                    }
+<span class="nc" id="L186">                }</span>
+            });
+
+<span class="nc" id="L189">            LinearLayout layout = new LinearLayout(this);</span>
+
+<span class="nc" id="L191">            layout.addView(calendarView);</span>
+
+<span class="nc" id="L193">            new AlertDialog.Builder(this)</span>
+<span class="nc" id="L194">                    .setTitle(&quot;Pick a date&quot;)</span>
+<span class="nc" id="L195">                    .setView(layout)</span>
+<span class="nc" id="L196">                    .setPositiveButton(&quot;OK&quot;, (dialog, which) -&gt; {</span>
+<span class="nc" id="L197">                        Toast.makeText(this, &quot;Date: &quot; + selectedDate.toString(), Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L198">                        dateView.setText(selectedDate.toString());</span>
+<span class="nc" id="L199">                    })</span>
+<span class="nc" id="L200">                    .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L201">                    .show();</span>
+        }
+
+<span class="nc" id="L204">    }</span>
+
+    @Override
+    public void onClick(View v) {
+<span class="nc" id="L208">        int id = v.getId();</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (id == R.id.homeButton2) {</span>
+<span class="nc" id="L210">            startActivity(new Intent(ManagerShiftView.this, MainActivity.class));</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">        }else if (id == R.id.backToSearchButton) {</span>
+<span class="nc" id="L212">            startActivity(new Intent(ManagerShiftView.this, SearchItem.class));</span>
+        }
+
+<span class="nc" id="L215">        String employeeID = String.valueOf(employeeIDBox.getText());</span>
+
+        /* input validation */
+<span class="nc bnc" id="L218" title="All 2 branches missed.">        if (selectedDate == null) {</span>
+<span class="nc" id="L219">            errorMesaggeBox.setText(&quot;Please select a date&quot;);</span>
+<span class="nc" id="L220">            return;</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">        }else if (employeeID.isEmpty()) {</span>
+<span class="nc" id="L222">            errorMesaggeBox.setText(&quot;Please Enter an employee ID&quot;);</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        }else if(!(employeeID.matches(&quot;[0-9]+&quot;))){</span>
+<span class="nc" id="L224">            errorMesaggeBox.setText(&quot;Employee ID may only contain numbers&quot;);</span>
+        }
+        /* end input validation */
+
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        if (id == R.id.deleteShiftButton) {</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">            if (employeeID.isEmpty()) {</span>
+<span class="nc" id="L230">                errorMesaggeBox.setText(&quot;Please Enter an employee ID&quot;);</span>
+            } else {
+<span class="nc" id="L232">                sendDeleteRequestToDB(employeeID, selectedDate.toString());</span>
+            }
+<span class="nc" id="L234">            return;//return early cuz no need to continue</span>
+        }
+        //create and update logic below
+<span class="nc bnc" id="L237" title="All 4 branches missed.">        if (startTime == null || endTime == null) {</span>
+<span class="nc" id="L238">            errorMesaggeBox.setText(&quot;Please select start and end times&quot;);</span>
+<span class="nc" id="L239">            return;</span>
+        }
+<span class="nc" id="L241">        String startTimeString = startTime.toString();</span>
+<span class="nc" id="L242">        String endTimeString = endTime.toString();</span>
+
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+<span class="nc" id="L245">            LocalTime startTime = LocalTime.parse(startTimeString);</span>
+<span class="nc" id="L246">            LocalTime endTime = LocalTime.parse(endTimeString);</span>
+            try {
+<span class="nc" id="L248">                JSONObject shiftJson = createShiftJson(Integer.valueOf(employeeID), startTime.toString(), endTime.toString(), selectedDate.toString());</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">                if (id == R.id.createShiftButton) {</span>
+<span class="nc" id="L250">                    sendPostRequestToDB(shiftJson);</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">                } else if (id == R.id.updateShiftButton) {</span>
+<span class="nc" id="L252">                    sendPutRequestToDB(shiftJson);</span>
+                }
+<span class="nc" id="L254">            } catch (JSONException e) {</span>
+<span class="nc" id="L255">                throw new RuntimeException(e);</span>
+<span class="nc" id="L256">            }</span>
+        }
+<span class="nc" id="L258">    }</span>
+
+
+    private JSONObject createShiftJson(Integer employeeId, String startTime, String endTime, String date) throws JSONException {
+<span class="nc" id="L262">        JSONObject jsonBody = new JSONObject();</span>
+<span class="nc" id="L263">        jsonBody.put(&quot;employeeId&quot;, employeeId);</span>
+<span class="nc" id="L264">        jsonBody.put(&quot;startTime&quot;, startTime);</span>
+<span class="nc" id="L265">        jsonBody.put(&quot;endTime&quot;, endTime);</span>
+<span class="nc" id="L266">        jsonBody.put(&quot;shiftDate&quot;, date);</span>
+<span class="nc" id="L267">        return jsonBody;</span>
+    }
+
+    private void sendPostRequestToDB(JSONObject jsonBody) {
+
+<span class="nc" id="L272">        final String mRequestBody = jsonBody.toString();</span>
+
+<span class="nc" id="L274">        StringRequest stringRequest = new StringRequest(</span>
+                Request.Method.POST,
+                URL_POST_ITEM,
+<span class="nc" id="L277">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // Handle the successful response here
+<span class="nc" id="L281">                        Log.d(&quot;Item Updated Successful&quot;, response);</span>
+<span class="nc" id="L282">                        errorMesaggeBox.setText(response.toString());</span>
+                        //startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+<span class="nc" id="L284">                    }</span>
+                },
+<span class="nc" id="L286">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc bnc" id="L289" title="All 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="nc" id="L290">                            String body = new String(error.networkResponse.data);</span>
+<span class="nc" id="L291">                            Log.e(&quot;Error&quot;, &quot;Status: &quot; + error.networkResponse.statusCode + &quot; Body: &quot; + body);</span>
+<span class="nc" id="L292">                            errorMesaggeBox.setText(&quot;Error &quot; + error.networkResponse.statusCode + &quot;: &quot; + body);</span>
+<span class="nc" id="L293">                        } else {</span>
+<span class="nc" id="L294">                            errorMesaggeBox.setText(&quot;Error: &quot; + error.getMessage());</span>
+                        }
+<span class="nc" id="L296">                    }</span>
+                }
+<span class="nc" id="L298">        ) {</span>
+
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L302">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                try {
+<span class="nc bnc" id="L308" title="All 2 branches missed.">                    return mRequestBody == null ? null : mRequestBody.getBytes(&quot;utf-8&quot;);</span>
+<span class="nc" id="L309">                } catch (UnsupportedEncodingException uee) {</span>
+<span class="nc" id="L310">                    VolleyLog.d(&quot;Unsupported Encoding while trying to get the bytes of %s using %s&quot;, mRequestBody, &quot;utf-8&quot;);</span>
+<span class="nc" id="L311">                    return null;</span>
+                }
+            }
+
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L317">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                //                headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+                //                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L320">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L325">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                //                params.put(&quot;param1&quot;, &quot;value1&quot;);
+                //                params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L328">                return params;</span>
+            }
+        };
+        // Adding request to request queue
+<span class="nc" id="L332">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L333">    }</span>
+
+    private void sendDeleteRequestToDB(String employeeId, String date) {
+<span class="nc" id="L336">        final String url = URL_DELETE_ITEM + date + &quot;/from-employee/1&quot; /*+ employeeId*/;</span>
+
+
+<span class="nc" id="L339">        StringRequest stringRequest = new StringRequest(</span>
+                Request.Method.DELETE,  // HTTP request method (GET)
+                url,
+                // URL of the JSON object API// Pass null as the request body since it's a GET request
+                // Response listener for handling successful response
+<span class="nc" id="L344">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+<span class="nc" id="L347">                        errorMesaggeBox.setText(response);</span>
+<span class="nc" id="L348">                    }</span>
+                },
+
+                // Error listener for handling request failure
+<span class="nc" id="L352">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc bnc" id="L355" title="All 4 branches missed.">                        if (error.networkResponse != null &amp;&amp; error.networkResponse.data != null) {</span>
+<span class="nc" id="L356">                            String body = new String(error.networkResponse.data);</span>
+<span class="nc" id="L357">                            Log.e(&quot;Error&quot;, &quot;Status: &quot; + error.networkResponse.statusCode + &quot; Body: &quot; + body);</span>
+<span class="nc" id="L358">                            errorMesaggeBox.setText(&quot;Error &quot; + error.networkResponse.statusCode + &quot;: &quot; + body);</span>
+                        } else {
+                            //errorMesaggeBox.setText(&quot;Error: &quot; + error.getMessage());
+                        }
+<span class="nc" id="L362">                    }</span>
+                }
+<span class="nc" id="L364">        ) {</span>
+        };
+
+        // Adding request to the Volley request queue for execution
+<span class="nc" id="L368">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L369">    }</span>
+    private void sendPutRequestToDB(JSONObject jsonObject) {
+<span class="nc" id="L371">        final String mRequestBody = jsonObject.toString();</span>
+
+<span class="nc" id="L373">        StringRequest stringRequest = new StringRequest(</span>
+                Request.Method.PUT,
+                URL_PUT_ITEM,
+<span class="nc" id="L376">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // Handle the successful response here
+<span class="nc" id="L380">                        Log.d(&quot;Item Updated Successfully&quot;, response);</span>
+<span class="nc" id="L381">                        errorMesaggeBox.setText(response.toString());</span>
+                        //startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+<span class="nc" id="L383">                    }</span>
+                },
+<span class="nc" id="L385">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc bnc" id="L388" title="All 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="nc" id="L389">                            String body = new String(error.networkResponse.data);</span>
+<span class="nc" id="L390">                            Log.e(&quot;Error&quot;, &quot;Status: &quot; + error.networkResponse.statusCode + &quot; Body: &quot; + body);</span>
+<span class="nc" id="L391">                            errorMesaggeBox.setText(&quot;Error &quot; + error.networkResponse.statusCode + &quot;: &quot; + body);</span>
+<span class="nc" id="L392">                        } else {</span>
+<span class="nc" id="L393">                            errorMesaggeBox.setText(&quot;Error: &quot; + error.toString());</span>
+                        }
+<span class="nc" id="L395">                    }</span>
+                }
+<span class="nc" id="L397">        ) {</span>
+
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L401">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                try {
+<span class="nc bnc" id="L407" title="All 2 branches missed.">                    return mRequestBody == null ? null : mRequestBody.getBytes(&quot;utf-8&quot;);</span>
+<span class="nc" id="L408">                } catch (UnsupportedEncodingException uee) {</span>
+<span class="nc" id="L409">                    VolleyLog.d(&quot;Unsupported Encoding while trying to get the bytes of %s using %s&quot;, mRequestBody, &quot;utf-8&quot;);</span>
+<span class="nc" id="L410">                    return null;</span>
+                }
+            }
+
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L416">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                //                headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+                //                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L419">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L424">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                //                params.put(&quot;param1&quot;, &quot;value1&quot;);
+                //                params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L427">                return params;</span>
+            }
+        };
+        // Adding request to request queue
+<span class="nc" id="L431">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L432">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShipmentItemViewActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.shipments.ui</a> &gt; <span class="el_source">ShipmentItemViewActivity.java</span></div><h1>ShipmentItemViewActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.shipments.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+import com.example.androidexample.R;
+import com.example.androidexample.features.NetworkCallback;
+import com.example.androidexample.features.shipments.model.ShipmentItemObject;
+import com.example.androidexample.features.shipments.services.ShipmentItemRequestMethods;
+
+<span class="nc" id="L16">public class ShipmentItemViewActivity extends AppCompatActivity {</span>
+
+
+    //UI components
+    private TextView itemStatusMSG, itemTitle, itemName, shippingCompany, storageLocation, quantity, weight, shipmentId, storageType, itemInfo;
+    private ImageView backButton, editButton, deleteButton, profile, menu;
+<span class="nc" id="L22">    private boolean isDeleteConfirmed = false;</span>
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L27">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L28">        setContentView(R.layout.activity_shipment_item_view);</span>
+
+        // Get shipment object and it's attributes
+<span class="nc" id="L31">        ShipmentItemObject item = (ShipmentItemObject) getIntent().getSerializableExtra(&quot;shipment_object&quot;);</span>
+<span class="nc" id="L32">        int itemId = item.getSkuId();</span>
+
+
+        // Initialize UI components
+<span class="nc" id="L36">        itemStatusMSG = findViewById(R.id.shipment_item_status_msg);</span>
+<span class="nc" id="L37">        itemTitle = findViewById(R.id.item_title);</span>
+<span class="nc" id="L38">        itemInfo = findViewById(R.id.shipment_info);</span>
+<span class="nc" id="L39">        backButton = findViewById(R.id.back_icon);</span>
+<span class="nc" id="L40">        deleteButton = findViewById(R.id.delete_icon);</span>
+<span class="nc" id="L41">        profile = findViewById(R.id.profile_icon);</span>
+<span class="nc" id="L42">        menu = findViewById(R.id.menu_icon);</span>
+<span class="nc" id="L43">        itemName = findViewById(R.id.detail_item_name);</span>
+<span class="nc" id="L44">        shippingCompany = findViewById(R.id.detail_shipping_co);</span>
+<span class="nc" id="L45">        quantity = findViewById(R.id.detail_quantity);</span>
+<span class="nc" id="L46">        weight = findViewById(R.id.detail_weight);</span>
+<span class="nc" id="L47">        shipmentId = findViewById(R.id.detail_shipment_id);</span>
+<span class="nc" id="L48">        storageType = findViewById(R.id.detail_storage_type);</span>
+<span class="nc" id="L49">        storageLocation = findViewById(R.id.detail_location);</span>
+
+
+
+<span class="nc" id="L53">        itemTitle.setText(&quot;Item: &quot; + itemId);</span>
+
+<span class="nc" id="L55">        itemName.setText(item.getItemName());</span>
+<span class="nc" id="L56">        shippingCompany.setText(item.getShippingCompany());</span>
+<span class="nc" id="L57">        storageLocation.setText(item.getStorageLocation());</span>
+<span class="nc" id="L58">        quantity.setText(String.valueOf(item.getQuantity()));</span>
+<span class="nc" id="L59">        weight.setText(String.valueOf(item.getWeight()) + &quot; lbs&quot;);</span>
+<span class="nc" id="L60">        shipmentId.setText(&quot;#&quot; + item.getShipment().getShipmentId());</span>
+<span class="nc" id="L61">        storageType.setText(&quot;&quot;+item.getStorageType());</span>
+
+//        itemInfo.setText(&quot;Item Name: &quot; + item.getItemName() + &quot;\n&quot; + &quot;Shipping Company: &quot; + item.getShippingCompany() + &quot;\n&quot; +
+//                &quot;Storage Location: &quot; + item.getStorageLocation() + &quot;\n&quot; + &quot;Quantity: &quot; + item.getQuantity() + &quot;\n&quot; +
+//                &quot;Weight: &quot; + item.getWeight() + &quot;\n&quot; +
+//                &quot;Shipment ID: &quot; + item.getShipment().getShipmentId() + &quot;\n&quot; + &quot;Storage Type: &quot; + item.getStorageType());
+
+
+
+<span class="nc" id="L70">        deleteButton.setOnClickListener(view -&gt; {</span>
+
+
+<span class="nc bnc" id="L73" title="All 2 branches missed.">            if (!isDeleteConfirmed) {</span>
+                // First click → ask for confirmation
+<span class="nc" id="L75">                itemStatusMSG.setText(&quot;Are you sure you want to delete? Click delete again to confirm.&quot;);</span>
+<span class="nc" id="L76">                isDeleteConfirmed = true;</span>
+<span class="nc" id="L77">                return;</span>
+            }
+
+<span class="nc" id="L80">            ShipmentItemRequestMethods.deleteItemRequest(this, itemId, new NetworkCallback&lt;String&gt;() {</span>
+
+                @Override
+                public void onSuccess(String response) {
+<span class="nc" id="L84">                    itemStatusMSG.setText(&quot;Item Removed&quot;);</span>
+<span class="nc" id="L85">                    startActivity(new Intent(ShipmentItemViewActivity.this, ShipmentListViewActivity.class));</span>
+<span class="nc" id="L86">                }</span>
+                @Override
+                public void onError(String error) {
+<span class="nc" id="L89">                    itemStatusMSG.setText(error);</span>
+<span class="nc" id="L90">                }</span>
+            });
+
+<span class="nc" id="L93">        });</span>
+
+<span class="nc" id="L95">        BannerHelper.setupBanner(this, profile, menu);</span>
+
+<span class="nc" id="L97">        backButton.setOnClickListener(view -&gt;</span>
+<span class="nc" id="L98">                startActivity(new Intent(ShipmentItemViewActivity.this, ShipmentListViewActivity.class)));</span>
+
+<span class="nc" id="L100">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StringReqActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.examples</a> &gt; <span class="el_source">StringReqActivity.java</span></div><h1>StringReqActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.examples;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.R;
+import com.example.androidexample.VolleySingleton;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
+
+<span class="nc" id="L27">public class StringReqActivity extends AppCompatActivity {</span>
+
+    private Button btnStringReq;
+    private Button btnStringReqWithBody;
+    private TextView msgResponse;
+
+    /** Uncomment to use: if sending a [GET] StringRequest */
+    /** Use public API on the Internet */
+    private static final String URL_STRING_REQ = &quot;https://jsonplaceholder.typicode.com/users/1&quot;;
+
+    /** Uncomment to use: if sending a [GET] StringRequest */
+    /** Use API created with POSTMAN-mockserver */
+//    public static final String URL_STRING_REQ = &quot;https://2aa87adf-ff7c-45c8-89bc-f3fbfaa16d15.mock.pstmn.io/users/1&quot;;
+
+
+    /** Uncomment to use: if sending a [GET] StringRequest */
+    /** Use backend: https://git.las.iastate.edu/cs309/tutorials/-/tree/springboot_unit2_1_onetoone */
+//    public static final String URL_STRING_REQ = &quot;http://10.0.2.2:8080/users/1&quot;;
+
+    /** Uncomment to use: if sending a [POST] StringRequest */
+    /** Use backend: https://git.las.iastate.edu/cs309/tutorials/-/tree/springboot_unit2_1_onetoone */
+//    public static final String URL_STRING_REQ = &quot;http://10.0.2.2:8080/users&quot;;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L52">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L53">        setContentView(R.layout.activity_string_req);</span>
+
+<span class="nc" id="L55">        btnStringReq = (Button) findViewById(R.id.btnStringReq);</span>
+<span class="nc" id="L56">        btnStringReqWithBody = (Button) findViewById(R.id.btnStringReqWithBody);</span>
+<span class="nc" id="L57">        msgResponse = (TextView) findViewById(R.id.msgResponse);</span>
+
+<span class="nc" id="L59">        btnStringReq.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L62">                makeStringReq();</span>
+<span class="nc" id="L63">            }</span>
+        });
+
+<span class="nc" id="L66">        btnStringReqWithBody.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+                try{
+                    // fields should match the attributes of the User Object at:
+                    // https://git.las.iastate.edu/cs309/tutorials/-/blob/springboot_unit2_1_onetoone/springboot_example/src/main/java/onetoone/Users/User.java
+<span class="nc" id="L72">                    JSONObject jsonBody = new JSONObject();</span>
+<span class="nc" id="L73">                    jsonBody.put(&quot;name&quot;, &quot;MY NAME&quot;);</span>
+<span class="nc" id="L74">                    jsonBody.put(&quot;emailId&quot;, 1);</span>
+<span class="nc" id="L75">                    jsonBody.put(&quot;ifActive&quot;, true);</span>
+<span class="nc" id="L76">                    makeStringReqWithBody(jsonBody);</span>
+
+<span class="nc" id="L78">                } catch (JSONException e) {</span>
+<span class="nc" id="L79">                    e.printStackTrace();</span>
+<span class="nc" id="L80">                }</span>
+<span class="nc" id="L81">            }</span>
+        });
+<span class="nc" id="L83">    }</span>
+
+    /**
+     * Sends a string request [GET] without a body.
+     */
+    private void makeStringReq() {
+
+<span class="nc" id="L90">        StringRequest stringRequest = new StringRequest(</span>
+                Request.Method.GET,
+                URL_STRING_REQ,
+<span class="nc" id="L93">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // Handle the successful response here
+<span class="nc" id="L97">                        Log.d(&quot;Volley Response&quot;, response);</span>
+<span class="nc" id="L98">                        msgResponse.setText(response.toString());</span>
+<span class="nc" id="L99">                    }</span>
+                },
+<span class="nc" id="L101">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle any errors that occur during the request
+<span class="nc" id="L105">                        Log.e(&quot;Volley Error&quot;, error.toString());</span>
+<span class="nc" id="L106">                    }</span>
+                }
+<span class="nc" id="L108">        ) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L111">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+//                headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L114">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L119">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+//                params.put(&quot;param1&quot;, &quot;value1&quot;);
+//                params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L122">                return params;</span>
+            }
+        };
+
+        // Adding request to request queue
+<span class="nc" id="L127">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L128">    }</span>
+
+
+    /**
+     * Makes a string request [POST] with a JSON object body.
+     *
+     * @param jsonBody The JSON object containing the data to be sent with the request. This
+     *                 object should be properly formatted and include all necessary fields
+     *                 to match the attributes of the corresponding Object on the server.
+     */
+    private void makeStringReqWithBody(JSONObject jsonBody) {
+<span class="nc" id="L139">        final String mRequestBody = jsonBody.toString();</span>
+
+<span class="nc" id="L141">        StringRequest stringRequest = new StringRequest(</span>
+                Request.Method.POST,
+                URL_STRING_REQ,
+<span class="nc" id="L144">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // Handle the successful response here
+<span class="nc" id="L148">                        Log.d(&quot;Volley Response&quot;, response);</span>
+<span class="nc" id="L149">                        msgResponse.setText(response.toString());</span>
+<span class="nc" id="L150">                    }</span>
+                },
+<span class="nc" id="L152">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle any errors that occur during the request
+<span class="nc" id="L156">                        Log.e(&quot;Volley Error&quot;, error.toString());</span>
+<span class="nc" id="L157">                        msgResponse.setText(error.toString());</span>
+<span class="nc" id="L158">                    }</span>
+                }
+<span class="nc" id="L160">        ) {</span>
+
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L164">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                try {
+<span class="nc bnc" id="L170" title="All 2 branches missed.">                    return mRequestBody == null ? null : mRequestBody.getBytes(&quot;utf-8&quot;);</span>
+<span class="nc" id="L171">                } catch (UnsupportedEncodingException uee) {</span>
+<span class="nc" id="L172">                    VolleyLog.d(&quot;Unsupported Encoding while trying to get the bytes of %s using %s&quot;, mRequestBody, &quot;utf-8&quot;);</span>
+<span class="nc" id="L173">                    return null;</span>
+                }
+            }
+
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L179">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+//                headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L182">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L187">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+//                params.put(&quot;param1&quot;, &quot;value1&quot;);
+//                params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L190">                return params;</span>
+            }
+        };
+
+        // Adding request to request queue
+<span class="nc" id="L195">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L196">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

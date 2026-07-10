@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SearchItem.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.items</a> &gt; <span class="el_source">SearchItem.java</span></div><h1>SearchItem.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.items;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+import com.example.androidexample.features.navigation.ui.MainActivity;
+import com.example.androidexample.R;
+import com.example.androidexample.VolleySingleton;
+import com.example.androidexample.features.user.data.SessionManager;
+import com.google.android.material.textfield.TextInputEditText;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+
+/**
+ * for post
+ * {
+ * skuNumber:
+ * itemName:
+ * ItemDescription:
+ * amountOfItem:
+ * }
+ *
+ * then for put, ill send a change object with
+ * {
+ * changeID:
+ * skuNumber:
+ * amount:
+ * employeeID:
+ * }
+ */
+<span class="fc" id="L49">public class SearchItem extends AppCompatActivity implements View.OnClickListener {</span>
+
+    // UI components
+    private Button editItemButton, searchButton, backToAddItemButton;
+    private TextView errorMesaggeBox;
+    private TextInputEditText itemIdBox, itemNameBox, itemAmountBox, itemDescriptionBox;
+
+    private static final String URL_GET_ITEM = &quot;http://coms-3090-013.class.las.iastate.edu:8080/inventory/{sku}&quot;;
+
+    private ImageView profile, menu;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L63">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L64">        setContentView(R.layout.activity_search_item);</span>
+
+<span class="fc" id="L66">        searchButton = findViewById(R.id.searchItemButton);</span>
+<span class="fc" id="L67">        backToAddItemButton = findViewById(R.id.addAnItemButton);</span>
+<span class="fc" id="L68">        editItemButton = findViewById(R.id.backToSearchButton);</span>
+
+
+<span class="fc" id="L71">        itemNameBox = findViewById(R.id.itemNameBox);</span>
+<span class="fc" id="L72">        itemIdBox = findViewById(R.id.itemIDBox);</span>
+<span class="fc" id="L73">        itemAmountBox = findViewById(R.id.itemNumberBox);</span>
+<span class="fc" id="L74">        itemDescriptionBox = findViewById(R.id.ItemDescriptionBox);</span>
+
+
+        //banner setup
+<span class="fc" id="L78">        profile = findViewById(R.id.profile_icon);</span>
+<span class="fc" id="L79">        menu = findViewById(R.id.menu_icon);</span>
+<span class="fc" id="L80">        BannerHelper.setupBanner(this, profile, menu);</span>
+
+<span class="fc" id="L82">        errorMesaggeBox = findViewById(R.id.errorMessageView);</span>
+
+        /* button click listeners */
+<span class="fc" id="L85">        editItemButton.setOnClickListener(this);</span>
+<span class="fc" id="L86">        backToAddItemButton.setOnClickListener(this);</span>
+<span class="fc" id="L87">        searchButton.setOnClickListener(this);</span>
+
+<span class="fc" id="L89">    }</span>
+
+    @Override
+    public void onClick(View v) {
+<span class="fc" id="L93">        int id = v.getId();</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        if (id == R.id.searchItemButton) {</span>
+<span class="fc" id="L95">            String itemName = String.valueOf(itemNameBox.getText());</span>
+<span class="fc" id="L96">            String skuNumber = String.valueOf(itemIdBox.getText());</span>
+
+
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">            if (itemName.isEmpty()) {</span>
+<span class="nc" id="L100">                errorMesaggeBox.setText(&quot;Item Name Is Empty&quot;);</span>
+
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">            } else if (skuNumber.isEmpty()) {</span>
+<span class="nc" id="L103">                errorMesaggeBox.setText(&quot;Sku Number Is Empty&quot;);</span>
+            }  else {
+<span class="fc" id="L105">                    getItemFromDB(skuNumber);</span>
+
+
+            }
+
+<span class="pc bnc" id="L110" title="All 2 branches missed.">        } else if (id == R.id.backToSearchButton) {</span>
+<span class="nc" id="L111">            startActivity(new Intent(SearchItem.this, EditAndDeleteItem.class));</span>
+
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        }else if (id == R.id.addAnItemButton){</span>
+<span class="nc" id="L114">            startActivity(new Intent(SearchItem.this, AddItem.class));</span>
+        }
+<span class="fc" id="L116">    }</span>
+
+    private void getItemFromDB(String sku) {
+<span class="fc" id="L119">        String url = URL_GET_ITEM.replace(&quot;{sku}&quot;, sku);</span>
+
+<span class="fc" id="L121">        JsonObjectRequest jsonObjReq = new JsonObjectRequest(</span>
+                Request.Method.GET,  // HTTP request method (GET)
+                url,     // URL of the JSON object API
+                null,                // Pass null as the request body since it's a GET request
+
+                // Response listener for handling successful response
+<span class="fc" id="L127">                new Response.Listener&lt;JSONObject&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONObject response) {
+<span class="nc" id="L130">                        Log.d(&quot;Volley Response&quot;, response.toString());</span>
+                        try {
+
+<span class="nc" id="L133">                            String skuNumber = response.getString(&quot;skuNumber&quot;);</span>
+<span class="nc" id="L134">                            String itemName = response.getString(&quot;itemName&quot;);</span>
+<span class="nc" id="L135">                            String itemDescription = response.getString(&quot;itemDescription&quot;);</span>
+<span class="nc" id="L136">                            String amountOfItem = response.getString(&quot;amountOfItem&quot;);</span>
+
+                            // Populate TextViews with the retrieved data
+<span class="nc" id="L139">                            itemAmountBox.setText(amountOfItem);</span>
+<span class="nc" id="L140">                            itemNameBox.setText(itemName);</span>
+<span class="nc" id="L141">                            itemIdBox.setText(skuNumber);</span>
+<span class="nc" id="L142">                            itemDescriptionBox.setText(itemDescription);</span>
+
+
+<span class="nc" id="L145">                        } catch (JSONException e) {</span>
+<span class="nc" id="L146">                            Log.e(&quot;Error&quot;, e.toString());</span>
+<span class="nc" id="L147">                        }</span>
+<span class="nc" id="L148">                    }</span>
+                },
+
+                // Error listener for handling request failure
+<span class="fc" id="L152">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="fc" id="L156">                            String body = new String(error.networkResponse.data);</span>
+<span class="fc" id="L157">                            Log.e(&quot;Error&quot;, &quot;Status: &quot; + error.networkResponse.statusCode + &quot; Body: &quot; + body);</span>
+<span class="fc" id="L158">                            errorMesaggeBox.setText(&quot;Error &quot; + error.networkResponse.statusCode + &quot;: &quot; + body);</span>
+<span class="fc" id="L159">                        } else {</span>
+<span class="nc" id="L160">                            errorMesaggeBox.setText(&quot;Error: &quot; + error.toString());</span>
+                        }
+
+<span class="fc" id="L163">                    }</span>
+                }
+<span class="fc" id="L165">        ) {</span>
+            // Override getHeaders() if authentication headers are needed
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="fc" id="L169">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L170">                String token = getSharedPreferences(&quot;auth&quot;, MODE_PRIVATE)</span>
+<span class="fc" id="L171">                        .getString(&quot;token&quot;, &quot;&quot;);</span>
+<span class="fc" id="L172">                headers.put(&quot;Authorization&quot;, &quot;Bearer &quot; + SessionManager.getToken());</span>
+<span class="fc" id="L173">                return headers;</span>
+            }
+
+            // Override getParams() if you need to send request parameters (for POST/PUT)
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L179">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+//                params.put(&quot;param1&quot;, &quot;value1&quot;); // Example parameter
+//                params.put(&quot;param2&quot;, &quot;value2&quot;); // Example parameter
+<span class="nc" id="L182">                return params;</span>
+            }
+        };
+
+        // Adding request` to the Volley request queue for execution
+<span class="fc" id="L187">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsonObjReq);</span>
+<span class="fc" id="L188">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtUtil.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.Configuration.SessionToken</a> &gt; <span class="el_source">JwtUtil.java</span></div><h1>JwtUtil.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.Configuration.SessionToken;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import java.security.Key;
+import java.util.Date;
+
+/**
+ * Utility component for generating and validating JWT tokens.
+ *
+ * &lt;p&gt;With server-side sessions, the token carries &lt;em&gt;only&lt;/em&gt; the {@code sessionId}
+ * (a UUID) as its subject claim. All real auth data — who the user is and what they
+ * can do — lives in the {@code Sessions} table. This means a logged-out user's token
+ * is immediately invalid once the session row is deleted, regardless of expiry.
+ *
+ * &lt;p&gt;Token flow:
+ * &lt;ol&gt;
+ *   &lt;li&gt;On login, {@link #generateToken(String)} wraps the session UUID in a
+ *       signed JWT and returns it to the client&lt;/li&gt;
+ *   &lt;li&gt;On each request, {@link #isTokenValid(String)} checks the signature
+ *       and expiry, then {@link #getSessionId(String)} extracts the UUID&lt;/li&gt;
+ *   &lt;li&gt;{@code JwtAuthFilter} uses that UUID to look up the session in the DB&lt;/li&gt;
+ * &lt;/ol&gt;
+ *
+ * &lt;p&gt;Configuration is loaded from {@code application.properties}:
+ * &lt;pre&gt;
+ *   jwt.secret=your-secret-key-at-least-32-characters-long
+ *   jwt.expiration-ms=86400000
+ * &lt;/pre&gt;
+ */
+@Component
+<span class="fc" id="L37">public class JwtUtil {</span>
+
+    /**
+     * Secret key used to sign and verify JWT tokens.
+     * Must be at least 32 characters (256 bits) for HS256.
+     * Loaded from {@code jwt.secret} in application.properties.
+     */
+    @Value(&quot;${jwt.secret}&quot;)
+    private String secret;
+
+    /**
+     * Token validity window in milliseconds.
+     * Loaded from {@code jwt.expiration-ms} in application.properties.
+     * Default: 86400000 (24 hours).
+     */
+    @Value(&quot;${jwt.expiration-ms}&quot;)
+    private Long expirationMs;
+
+    /**
+     * INIT: Builds the HMAC-SHA256 signing key from the configured secret string.
+     * @return
+     *  The cryptographic signing key
+     */
+<span class="fc" id="L60">    private Key getSigningKey() {return Keys.hmacShaKeyFor(secret.getBytes());}</span>
+
+    /**
+     * GENERATE: Builds a signed JWT whose only payload claim is the session ID.
+     * The token is signed with HS256 and expires after {@code jwt.expiration-ms}.
+     * @param sessionId
+     *  The UUID of the newly created {@code Session} record
+     * @return
+     *  A compact signed JWT string to return to the client
+     */
+    public String generateToken(String sessionId) {
+<span class="fc" id="L71">        Date now = new Date();</span>
+<span class="fc" id="L72">        Date expiration = new Date(now.getTime() + expirationMs);</span>
+
+<span class="fc" id="L74">        return Jwts.builder()</span>
+<span class="fc" id="L75">                .setSubject(sessionId)</span>
+<span class="fc" id="L76">                .setIssuedAt(now)</span>
+<span class="fc" id="L77">                .setExpiration(expiration)</span>
+<span class="fc" id="L78">                .signWith(getSigningKey(), SignatureAlgorithm.HS256)</span>
+<span class="fc" id="L79">                .compact();</span>
+    }
+
+    /**
+     * EXTRACT: Pulls the session ID out of a token's subject claim.
+     * @param token
+     *  The raw JWT string (without the {@code &quot;Bearer &quot;} prefix)
+     * @return
+     *  The session ID UUID string
+     */
+<span class="fc" id="L89">    public String getSessionId(String token) {return extractAllClaims(token).getSubject();}</span>
+
+    /**
+     * VALIDATE: Returns {@code true} if the token is well-formed, correctly
+     * signed, and not yet expired. Does not check whether the session still
+     * exists in the database — that is {@code JwtAuthFilter}'s responsibility.
+     * @param token
+     *  The raw JWT string
+     * @return
+     *  {@code true} if valid, {@code false} otherwise
+     */
+    public boolean isTokenValid(String token) {
+        try {
+<span class="fc" id="L102">            extractAllClaims(token);</span>
+<span class="fc" id="L103">            return true;</span>
+        }
+<span class="nc" id="L105">        catch (JwtException |  IllegalArgumentException e) {</span>
+<span class="nc" id="L106">            return false;</span>
+        }
+    }
+
+    /**
+     * READ: Extracts all claims from a JWT string.
+     * Throws a {@link JwtException} if the token is invalid or expired.
+     * @param token
+     *  The raw JWT string
+     * @return
+     *  The parsed {@link Claims} object
+     */
+    private Claims extractAllClaims(String token) {
+<span class="fc" id="L119">        return Jwts.parserBuilder()</span>
+<span class="fc" id="L120">                .setSigningKey(getSigningKey())</span>
+<span class="fc" id="L121">                .build()</span>
+<span class="fc" id="L122">                .parseClaimsJws(token)</span>
+<span class="fc" id="L123">                .getBody();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

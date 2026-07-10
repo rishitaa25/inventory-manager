@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShippingCompanyService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.services</a> &gt; <span class="el_source">ShippingCompanyService.java</span></div><h1>ShippingCompanyService.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.services;
+
+import org.example.inventory_manager_beta1.DTO.Shipments.ShippingCompanyRequest;
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.ShippingCompanyNotFoundException;
+import org.example.inventory_manager_beta1.entities.ShippingCompany;
+import org.example.inventory_manager_beta1.repositories.ShippingCompanyRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+/**
+ * A robust service class to handle all the different logic and search methods relating
+ * to the ShippingCompany class. It is complete with all the ShippingCompanyRepository
+ * search methods defined, and it handles every ShippingCompany related logic method
+ * with included custom error handling
+ */
+@Service
+public class ShippingCompanyService {
+    /**
+     * The auto-injected ShippingCompanyRepository for handling custom searches
+     */
+    @Autowired
+    private final ShippingCompanyRepository shippingCompanyRepository;
+
+    /**
+     * INIT: Used for initializing the shippingCompanyRepository for custom database searches
+     * @param shippingCompanyRepository
+     *  The repository containing the custom search methods
+     */
+<span class="fc" id="L30">    public ShippingCompanyService(ShippingCompanyRepository shippingCompanyRepository) {this.shippingCompanyRepository = shippingCompanyRepository;}</span>
+
+    /*==================================SEARCH METHODS==================================*/
+
+    /**
+     * A search method to find a specific shipping company by its ID
+     * @param id
+     *  The ID of the shippingCompany
+     * @return
+     *  The ShippingCompany with the matching ID if found
+     * @throws ShippingCompanyNotFoundException
+     *  Custom RuntimeException if ShippingCompany ID search doesn't find anything
+     */
+    public ShippingCompany findById(Integer id) {
+<span class="nc" id="L44">        return shippingCompanyRepository.findById(id)</span>
+<span class="nc" id="L45">                .orElseThrow(() -&gt; new RuntimeException(&quot;ShippingCompany with ID: &quot; + id + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * A search method to find a specific shipping company by its name
+     * @param companyName
+     *  The name of the ShippingCompany
+     * @return
+     *  The ShippingCompany with the matching name
+     * @throws ShippingCompanyNotFoundException
+     *  Custom RuntimeException if ShippingCompany name search doesn't find anything
+     */
+    public ShippingCompany findByShippingCompanyName(String companyName) {
+<span class="nc" id="L58">        return shippingCompanyRepository.findByShippingCompanyName(companyName)</span>
+<span class="nc" id="L59">                .orElseThrow(() -&gt; new ShippingCompanyNotFoundException(&quot;Shipping company with name: &quot; + companyName + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * A search method to find a specific shipping company by its email
+     * @param companyEmail
+     *  The email of the ShippingCompany
+     * @return
+     *  The ShippingCompany with the matching email
+     * @throws ShippingCompanyNotFoundException
+     *  Custom RuntimeException if ShippingCompany email search doesn't find anything
+     */
+    public ShippingCompany findByShippingCompanyEmail(String companyEmail) {
+<span class="nc" id="L72">        return shippingCompanyRepository.findByShippingCompanyEmail(companyEmail)</span>
+<span class="nc" id="L73">                .orElseThrow(() -&gt; new ShippingCompanyNotFoundException(&quot;Shipping company with email: &quot; + companyEmail + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * A search method to find a specific shipping company by its phone number
+     * @param companyPhone
+     *  The phone number of the ShippingCompany
+     * @return
+     *  The shippingCompany with the matching phone number
+     * @throws ShippingCompanyNotFoundException
+     *  Custom RuntimeException if ShippingCompany phone number search doesn't find anything
+     */
+    public ShippingCompany findByShippingCompanyPhone(String companyPhone) {
+<span class="nc" id="L86">        return shippingCompanyRepository.findByShippingCompanyPhone(companyPhone)</span>
+<span class="nc" id="L87">                .orElseThrow(() -&gt; new ShippingCompanyNotFoundException(&quot;Shipping company with phone number: &quot; + companyPhone + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * A search method to find all shipping companies in the database
+     * @return
+     *  A list of all ShippingCompanies
+     */
+<span class="fc" id="L95">    public List&lt;ShippingCompany&gt; findAll() {return shippingCompanyRepository.findAll();}</span>
+
+    /*==================================LOGIC METHODS==================================*/
+
+    /**
+     * A logic method that creates a new ShippingCompany
+     * @param shippingCompanyRequest
+     *  The DTO containing the information about the ShippingCompany from JSON
+     */
+    public void addShippingCompany(ShippingCompanyRequest shippingCompanyRequest) {
+<span class="fc" id="L105">        ShippingCompany company = new ShippingCompany(shippingCompanyRequest.getShippingCompanyName(), shippingCompanyRequest.getShippingCompanyEmail(), shippingCompanyRequest.getShippingCompanyPhone());</span>
+<span class="fc" id="L106">        shippingCompanyRepository.save(company);</span>
+<span class="fc" id="L107">    }</span>
+
+    /**
+     * A logic method that updates an existing ShippingCompany
+     * @param companyId
+     *  The ID of the ShippingCompany being updated
+     * @param companyRequest
+     *  The new JSON packet with updated information
+     */
+    public void updateShippingCompany(Integer companyId, ShippingCompanyRequest companyRequest) {
+<span class="nc" id="L117">        ShippingCompany company = findById(companyId);</span>
+<span class="nc" id="L118">        company.setShippingCompanyName(companyRequest.getShippingCompanyName());</span>
+<span class="nc" id="L119">        company.setShippingCompanyEmail(companyRequest.getShippingCompanyEmail());</span>
+<span class="nc" id="L120">        company.setShippingCompanyPhone(companyRequest.getShippingCompanyPhone());</span>
+<span class="nc" id="L121">        shippingCompanyRepository.save(company);</span>
+<span class="nc" id="L122">    }</span>
+
+    /**
+     * A logic method that deletes a specific ShippingCompany
+     * @param companyId
+     *  The ID of the ShippingCompany
+     */
+    public void deleteShippingCompany(Integer companyId) {
+<span class="nc" id="L130">        ShippingCompany company = findById(companyId);</span>
+<span class="nc" id="L131">        shippingCompanyRepository.delete(company);</span>
+<span class="nc" id="L132">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

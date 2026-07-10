@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EditUserActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.user.ui</a> &gt; <span class="el_source">EditUserActivity.java</span></div><h1>EditUserActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.user.ui;
+
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+import com.example.androidexample.features.navigation.ui.MainActivity;
+import com.example.androidexample.R;
+import com.example.androidexample.features.user.data.SessionManager;
+import com.example.androidexample.features.user.enums.AccessLevel;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+
+/**
+ * This Class is used to edit a user's information.
+ *
+ * It allows user's with ADMIN permissions to edit an user's information.
+ * It takes the ssn of the employee whose information will be changed. The user
+ * cannot change the ssn, but can change the firstname, lastname, access level,
+ * username, email, and phone number.
+ *
+ * This class uses HTTP PUT requests to communicate with the backend server.
+ *
+ * @author Olivia Blais
+ */
+<span class="nc" id="L45">public class EditUserActivity extends AppCompatActivity {</span>
+    private EditText userSSN, username, accessLevel, email, phone, firstName, lastName, id;
+    private ImageView profile, menu, updateUser, cancelButton;
+    private TextView messageResponse;
+<span class="nc" id="L49">    private boolean isUpdateConfirmed = false;</span>
+
+
+    private static final String UPDATE_URL =
+            //&quot;http://10.0.2.2:8080/&quot;;
+            //http://10.0.2.2:8080/employee/{ssn}
+            &quot;http://coms-3090-013.class.las.iastate.edu:8080/&quot;;
+
+    /**
+     * Initializes the Edit user activity and handles user input.
+     *
+     * @param savedInstanceState
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L64">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L65">        setContentView(R.layout.activity_edit_user);</span>
+
+<span class="nc" id="L67">        firstName = findViewById(R.id.user_first_name);</span>
+<span class="nc" id="L68">        lastName = findViewById(R.id.user_last_name);</span>
+//        username = findViewById(R.id.user_username);
+//        accessLevel = findViewById(R.id.user_access_level);
+<span class="nc" id="L71">        email = findViewById(R.id.user_email);</span>
+<span class="nc" id="L72">        phone = findViewById(R.id.user_phone);</span>
+//        userSSN = findViewById(R.id.user_SSN);
+<span class="nc" id="L74">        updateUser = findViewById(R.id.update_icon);</span>
+<span class="nc" id="L75">        messageResponse = findViewById(R.id.edit_user_msg);</span>
+<span class="nc" id="L76">        cancelButton = findViewById(R.id.cancel_icon);</span>
+<span class="nc" id="L77">        profile = findViewById(R.id.profile_icon);</span>
+<span class="nc" id="L78">        menu = findViewById(R.id.menu_icon);</span>
+<span class="nc" id="L79">        id = findViewById(R.id.user_id);</span>
+
+
+<span class="nc" id="L82">        BannerHelper.setupBanner(this, profile, menu);</span>
+
+<span class="nc bnc" id="L84" title="All 4 branches missed.">        if (SessionManager.getAccessLevel() != null &amp;&amp; SessionManager.getAccessLevel() == AccessLevel.ADMIN) {</span>
+
+
+
+<span class="nc" id="L88">            updateUser.setOnClickListener(new View.OnClickListener() {</span>
+
+                @Override
+                public void onClick(View view) {
+
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                    if (!isUpdateConfirmed){</span>
+                        // First click → ask for confirmation
+<span class="nc" id="L95">                        messageResponse.setText(&quot;Are you sure you want to update? Click update again to confirm.&quot;);</span>
+<span class="nc" id="L96">                        isUpdateConfirmed = true;</span>
+<span class="nc" id="L97">                        return;</span>
+                    }
+
+<span class="nc" id="L100">                    String stringID = id.getText().toString();</span>
+
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                    if (stringID.isEmpty()) {</span>
+<span class="nc" id="L103">                        messageResponse.setText(&quot;Please enter ID.&quot;);</span>
+<span class="nc" id="L104">                        return;</span>
+                    }
+
+                    int ssn;
+                    try {
+<span class="nc" id="L109">                        ssn = Integer.parseInt(stringID);</span>
+<span class="nc" id="L110">                    } catch (NumberFormatException e) {</span>
+<span class="nc" id="L111">                        messageResponse.setText(&quot;ID must be a number.&quot;);</span>
+<span class="nc" id="L112">                        return;</span>
+<span class="nc" id="L113">                    }</span>
+
+<span class="nc" id="L115">                    messageResponse.setText(&quot;Updating user...&quot;);</span>
+<span class="nc" id="L116">                    requestUserUpdate(ssn);</span>
+<span class="nc" id="L117">                }</span>
+            });
+
+        } else {
+<span class="nc" id="L121">            messageResponse.setText(&quot;You do not have permission to edit users.&quot;);</span>
+        }
+
+<span class="nc" id="L124">        cancelButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View view) {
+<span class="nc" id="L127">                startActivity(new Intent(EditUserActivity.this, UserProfileActivity.class));</span>
+<span class="nc" id="L128">            }</span>
+        });
+
+<span class="nc" id="L131">    }</span>
+
+    /**
+     * Sends a PUT request to the backend server to update an employee's information.
+     *
+     * The request body is constructed as a JSON object containing only the fields
+     * that the user has modified (non-empty inputs). The SSN is appended to the
+     * request URL to identify the specific employee to update.
+     *
+     * If successful, a confirmation message is displayed to the user. If it fails,
+     * an error message is shown and the error is logged.
+     *
+     * @param ssn the SSN of the employee whose information is being updated
+     */
+    private void requestUserUpdate(int ssn) {
+<span class="nc" id="L146">        JSONObject requestBody = new JSONObject();</span>
+        try {
+//            requestBody.put(&quot;ssn&quot;, ssn);
+
+<span class="nc" id="L150">            String idVal = id.getText().toString().trim();</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">            if (!idVal.isEmpty()) {</span>
+<span class="nc" id="L152">                requestBody.put(&quot;employeeId&quot;, Integer.parseInt(idVal));</span>
+            }
+
+//            String usernameVal = username.getText().toString().trim();
+//            if (!usernameVal.isEmpty()) {
+//                requestBody.put(&quot;username&quot;, usernameVal);
+//            }
+
+<span class="nc" id="L160">            String firstNameVal = firstName.getText().toString().trim();</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">            if (!firstNameVal.isEmpty()) {</span>
+<span class="nc" id="L162">                requestBody.put(&quot;firstName&quot;, firstNameVal);</span>
+            }
+
+<span class="nc" id="L165">            String lastNameVal = lastName.getText().toString().trim();</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">            if (!lastNameVal.isEmpty()) {</span>
+<span class="nc" id="L167">                requestBody.put(&quot;lastName&quot;, lastNameVal);</span>
+            }
+
+//            String accessVal = accessLevel.getText().toString().trim();
+//            if (!accessVal.isEmpty()) {
+//                try {
+//                    AccessLevel.valueOf(accessVal.toUpperCase());
+//                    requestBody.put(&quot;accessLevel&quot;, accessVal.toUpperCase());
+//                } catch (IllegalArgumentException e) {
+//                    Log.e(&quot;UpdateUser&quot;, &quot;Invalid access level&quot;);
+//                    messageResponse.setText(&quot;Invalid access level.&quot;);
+//                    return;
+//                }
+//            }
+
+<span class="nc" id="L182">            String emailVal = email.getText().toString().trim();</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">            if (!emailVal.isEmpty()) {</span>
+<span class="nc" id="L184">                requestBody.put(&quot;email&quot;, emailVal);</span>
+            }
+
+<span class="nc" id="L187">            String phoneVal = phone.getText().toString().trim();</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            if (!phoneVal.isEmpty()) {</span>
+<span class="nc" id="L189">                requestBody.put(&quot;phoneNumber&quot;, phoneVal);</span>
+            }
+
+<span class="nc" id="L192">        } catch (JSONException e) {</span>
+<span class="nc" id="L193">            e.printStackTrace();</span>
+<span class="nc" id="L194">        }</span>
+<span class="nc" id="L195">        Log.d(&quot;REQUEST_BODY&quot;, requestBody.toString());</span>
+<span class="nc" id="L196">        Log.d(&quot;REQUEST_URL&quot;, UPDATE_URL + &quot;employee/&quot; + &quot;update&quot;);</span>
+<span class="nc" id="L197">        StringRequest request = new StringRequest(</span>
+                Request.Method.PUT,
+                UPDATE_URL + &quot;employee/&quot; + &quot;update&quot;,
+
+<span class="nc" id="L201">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+<span class="nc" id="L204">                        Log.d(&quot;Volley Response&quot;, response.toString());</span>
+
+<span class="nc" id="L206">                            messageResponse.setText(response);</span>
+<span class="nc" id="L207">                    }</span>
+                },
+<span class="nc" id="L209">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc bnc" id="L212" title="All 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="nc" id="L213">                            Log.e(&quot;SERVER_RESPONSE&quot;, new String(error.networkResponse.data));</span>
+                        }
+<span class="nc" id="L215">                        Log.e(&quot;Volley Error&quot;, error.toString());</span>
+<span class="nc" id="L216">                        messageResponse.setText(&quot;Update failed. Please try again.&quot;);</span>
+<span class="nc" id="L217">                    }</span>
+<span class="nc" id="L218">                }) {</span>
+
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L222">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                try {
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                    return requestBody == null ? null : requestBody.toString().getBytes(&quot;utf-8&quot;);</span>
+<span class="nc" id="L229">                } catch (UnsupportedEncodingException uee) {</span>
+<span class="nc" id="L230">                    VolleyLog.d(&quot;Unsupported Encoding while trying to get the bytes of %s using %s&quot;, requestBody, &quot;utf-8&quot;);</span>
+<span class="nc" id="L231">                    return null;</span>
+                }
+            }
+
+        };
+
+<span class="nc" id="L237">        Volley.newRequestQueue(this).add(request);</span>
+<span class="nc" id="L238">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

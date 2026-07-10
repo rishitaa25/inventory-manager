@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShippingCompanyController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.mainApplicationClasses</a> &gt; <span class="el_source">ShippingCompanyController.java</span></div><h1>ShippingCompanyController.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.mainApplicationClasses;
+
+import org.example.inventory_manager_beta1.DTO.Shipments.ShippingCompanyRequest;
+import org.example.inventory_manager_beta1.entities.ShippingCompany;
+import org.example.inventory_manager_beta1.services.ShippingCompanyService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+/**
+ * A controller class containing all the different HTTP mappings for ShippingCompany related methods
+ */
+@RestController
+@RequestMapping(&quot;/shipping-company&quot;)
+<span class="fc" id="L15">public class ShippingCompanyController {</span>
+    @Autowired
+    ShippingCompanyService shippingCompanyService;
+
+    /**
+     * CREATE: A logic method that creates a new ShippingCompany entity
+     * @param companyRequest
+     *  The DTO containing the
+     * @return
+     * True if completed
+     */
+    @PostMapping(&quot;/add&quot;)
+    public Boolean addShippingCompany(@RequestBody ShippingCompanyRequest companyRequest) {
+<span class="fc" id="L28">        shippingCompanyService.addShippingCompany(companyRequest);</span>
+<span class="fc" id="L29">        return true;</span>
+    }
+
+    /**
+     * READ: A controller method for handling searching for a specific ShippingCompany
+     * @param companyId
+     *  The company ID of the specific ShippingCompany
+     * @return
+     *  The specific ShippingCompany
+     */
+    @GetMapping(&quot;/find-by/id/{companyId}&quot;)
+<span class="nc" id="L40">    public ShippingCompany getShippingCompanyViaId(@PathVariable(&quot;companyId&quot;) Integer companyId) {return shippingCompanyService.findById(companyId);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific ShippingCompany
+     * @param companyName
+     *  The name of the ShippingCompany
+     * @return
+     *  The ShippingCompany with the matching name if it exists
+     */
+    @GetMapping(&quot;/find-by/name/{companyName}&quot;)
+<span class="nc" id="L50">    public ShippingCompany getShippingCompanyViaName(@PathVariable(&quot;companyName&quot;) String companyName) {return shippingCompanyService.findByShippingCompanyName(companyName);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific ShippingCompany
+     * @param companyEmail
+     *  The email of the ShippingCompany
+     * @return
+     *  The ShippingCompany with the matching email if it exists
+     */
+    @GetMapping(&quot;/find-by/email/{companyEmail}&quot;)
+<span class="nc" id="L60">    public ShippingCompany getShippingCompanyViaEmail(@PathVariable(&quot;companyEmail&quot;) String companyEmail) {return shippingCompanyService.findByShippingCompanyEmail(companyEmail);}</span>
+
+    /**
+     * READ: A controller method for handling searching for a specific ShippingCompany
+     * @param companyPhoneNumber
+     *  The phone number of the ShippingCompany
+     * @return
+     *  The ShippingCompany with the matching phone number if it exists
+     */
+    @GetMapping(&quot;/find-by/phone-number/{companyPhoneNumber}&quot;)
+<span class="nc" id="L70">    public ShippingCompany getShippingCompanyViaPhoneNumber(@PathVariable(&quot;companyPhoneNumber&quot;) String companyPhoneNumber) {return shippingCompanyService.findByShippingCompanyPhone(companyPhoneNumber);}</span>
+
+    /**
+     * READ: A controller method for handling searching for all ShippingCompanies
+     * @return
+     *  A List of all existing ShippingCompanies
+     */
+    @GetMapping(&quot;/find/all&quot;)
+<span class="nc" id="L78">    public List&lt;ShippingCompany&gt; getShippingCompanies() {return shippingCompanyService.findAll();}</span>
+
+    /**
+     * UPDATE: A controller method for handling updating the information for
+     * a specific ShippingCompany
+     * @param companyId
+     *  The ID of the ShippingCompany being updated
+     * @param companyRequest
+     *  The DTO containing the new information about the ShippingCompany
+     * @return
+     *  True if completed
+     */
+    @PutMapping(&quot;/update/{companyId}&quot;)
+    public Boolean updateShippingCompany(@PathVariable Integer companyId, @RequestBody ShippingCompanyRequest companyRequest) {
+<span class="nc" id="L92">        shippingCompanyService.updateShippingCompany(companyId, companyRequest);</span>
+<span class="nc" id="L93">        return true;</span>
+    }
+
+    /**
+     * DELETE: A controller method for handling deleting a ShippingCompany
+     * @param companyId
+     *  The ID of the ShippingCompany being deleted
+     * @return
+     *  True if completed
+     */
+    @DeleteMapping(&quot;/delete/{companyId}&quot;)
+    public Boolean deleteShippingCompany(@PathVariable Integer companyId) {
+<span class="nc" id="L105">        shippingCompanyService.deleteShippingCompany(companyId);</span>
+<span class="nc" id="L106">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

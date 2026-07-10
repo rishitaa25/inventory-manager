@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GlobalExceptionHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.ExceptionHandling</a> &gt; <span class="el_source">GlobalExceptionHandler.java</span></div><h1>GlobalExceptionHandler.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.ExceptionHandling;
+
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+/**
+ * The global Exception Handler class for handling different Exceptions and converting
+ * them into readable HTTP codes for frontend use and for the users of the app
+ */
+@RestControllerAdvice
+@SuppressWarnings(&quot;unused&quot;)
+<span class="fc" id="L15">public class GlobalExceptionHandler {</span>
+    /**
+     * A custom RuntimeException for converting generic RuntimeExceptions into an
+     * HTTP server error code
+     * @return
+     *  An HTTP Internal Server Error code (Error 500)
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity&lt;String&gt; handleGeneral(RuntimeException e) {
+<span class="fc" id="L24">        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
+<span class="fc" id="L25">                .body(e.getMessage());</span>
+        //.body(&quot;An unexpected error occurred&quot;);
+    }
+
+    /**
+     * A custom RuntimeException for converting an Employee related RuntimeException into
+     * an HTTP server error code
+     * @param e
+     *  The Employee related RuntimeException
+     * @return
+     *  An HTTP Not Found code (Error 404)
+     */
+    @ExceptionHandler(EmployeeNotFoundException.class)
+    public ResponseEntity&lt;String&gt; handleEmployeeNotFound(EmployeeNotFoundException e) {
+<span class="nc" id="L39">        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());</span>
+    }
+
+    /**
+     * A custom RuntimeException for converting an Admin related RuntimeException into
+     * an HTTP server error code
+     * @param e
+     *  The Admin related RuntimeException
+     * @return
+     *  An HTTP Not Found code (Error 404)
+     */
+    @ExceptionHandler(AdminNotFoundException.class)
+    public ResponseEntity&lt;String&gt; handleAdminNotFound(AdminNotFoundException e) {
+<span class="nc" id="L52">        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());</span>
+    }
+
+    /**
+     * A custom RuntimeException for converting a Driver related RuntimeException into
+     * an HTTP server error code
+     * @param e
+     *  The Driver related RuntimeException
+     * @return
+     *  An HTTP Not Found code (Error 404)
+     */
+    @ExceptionHandler(DriverNotFoundException.class)
+    public ResponseEntity&lt;String&gt; handleDriverNotFound(DriverNotFoundException e) {
+<span class="nc" id="L65">        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());</span>
+    }
+
+    /**
+     * A custom RuntimeException for converting an Inventory related RuntimeException into
+     * an HTTP server error code
+     * @param e
+     *  The Inventory related RuntimeException
+     * @return
+     *  An HTTP Not Found code (Error 404)
+     */
+    @ExceptionHandler(InventoryNotFoundException.class)
+    public ResponseEntity&lt;String&gt; handleInventoryNotFound(InventoryNotFoundException e) {
+<span class="nc" id="L78">        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());</span>
+    }
+
+    /**
+     * A custom RuntimeException for converting an InventoryChange related RuntimeException
+     * into an HTTP server error code
+     * @param e
+     *  The InventoryChange related RuntimeException
+     * @return
+     *  An HTTP Not Found code (Error 404)
+     */
+    @ExceptionHandler(InventoryChangeNotFoundException.class)
+    public  ResponseEntity&lt;String&gt; handleInventoryChangeNotFound(InventoryChangeNotFoundException e) {
+<span class="nc" id="L91">        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());</span>
+    }
+
+    /**
+     * A custom RuntimeException for converting a Shipment related RuntimeException into
+     * an HTTP server error code
+     * @param e
+     *  The Shipment related RuntimeException
+     * @return
+     *  An HTTP Not Found code (Error 404)
+     */
+    @ExceptionHandler(ShipmentNotFoundException.class)
+    public ResponseEntity&lt;String&gt; handleShipmentNotFound(ShipmentNotFoundException e) {
+<span class="nc" id="L104">        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());</span>
+    }
+
+    /**
+     * A custom RuntimeException for converting a ShippingCompany related RuntimeException
+     * into an HTTP server error code
+     * @param e
+     *  The ShippingCompany related RuntimeException
+     * @return
+     *  An HTTP Not Found code (Error 404)
+     */
+    @ExceptionHandler(ShippingCompanyNotFoundException.class)
+    public ResponseEntity&lt;String&gt; handleShippingCompanyNotFound(ShippingCompanyNotFoundException e) {
+<span class="nc" id="L117">        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());</span>
+    }
+
+    /**
+     * A custom RuntimeException for converting an Item related RuntimeException into
+     * an HTTP server error code
+     * @param e
+     *  The Item related RuntimeException
+     * @return
+     *  An HTTP Not Found code (Error 404)
+     */
+    @ExceptionHandler(ItemNotFoundException.class)
+    public ResponseEntity&lt;String&gt; handleItemNotFound(ItemNotFoundException e) {
+<span class="nc" id="L130">        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());</span>
+    }
+
+    /**
+     * A custom RuntimeException for converting a Shift related RuntimeException into
+     * an HTTP server error code
+     * @param e
+     *  The Shift related RuntimeException
+     * @return
+     *  An HTTP Not Found code (Error 404)
+     */
+    @ExceptionHandler(ShiftNotFoundException.class)
+    public ResponseEntity&lt;String&gt; handleShiftNotFound(ShiftNotFoundException e) {
+<span class="nc" id="L143">        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());</span>
+    }
+
+    /**
+     * A custom RuntimeException for converting a AccessLevel related RuntimeException into
+     * an HTTP server error code
+     * @param e
+     *  The AccessLevel related RuntimeException
+     * @return
+     *  An HTTP Not Found code (Error 403)
+     */
+    @ExceptionHandler(InsufficientAccessLevelException.class)
+    public ResponseEntity&lt;String&gt; handleInsufficientAccessLevel(InsufficientAccessLevelException e) {
+<span class="nc" id="L156">        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());</span>
+    }
+
+    /**
+     * A custom RuntimeException for converting a Session token related RuntimeException into
+     * an HTTP server error code
+     * @param e
+     *  The Session token related RuntimeException
+     * @return
+     *  An HTTP Not Found code (Error 401)
+     */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity&lt;String&gt; handleUnauthorized(UnauthorizedException e) {
+<span class="nc" id="L169">        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());</span>
+    }
+
+    /**
+     * A custom RuntimeException that throws a Bad Request when a user tries to
+     * decrease an Item amount below 0
+     * @param e
+     *  The Shift related RuntimeException
+     * @return
+     *  An HTTP Bad Request code (Error 400)
+     */
+    @ExceptionHandler(IllegalActionException.class)
+    public ResponseEntity&lt;String&gt; handleIllegalAction(IllegalActionException e) {
+<span class="nc" id="L182">        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

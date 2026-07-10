@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShipmentResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.DTO.Shipments</a> &gt; <span class="el_source">ShipmentResponse.java</span></div><h1>ShipmentResponse.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.DTO.Shipments;
+
+import lombok.Data;
+import org.example.inventory_manager_beta1.entities.Item;
+import org.example.inventory_manager_beta1.DTO.Objects.ShortItem;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * A lightweight Data Transfer Object used for sending a status message
+ * from backend to frontend with information about a Shipment
+ */
+@Data
+public class ShipmentResponse {
+    /**
+     * An Integer variable for transferring the Shipment's ID
+     */
+    private Integer shipmentId;
+    /**
+     * An Integer variable for transferring the employeeId of the
+     * Admin who created the Shipment
+     */
+    private Integer creationAdminId;
+    /**
+     * An ArrayList variable for transferring the list of ShortItems
+     * on the Shipment
+     */
+<span class="nc" id="L29">    private ArrayList&lt;ShortItem&gt; items = new ArrayList&lt;&gt;();</span>
+    /**
+     * A LocalDate variable for transferring the arrival date of the Shipment
+     */
+    private LocalDate arrivalDate;
+    /**
+     * A boolean variable for transferring the arrived flag for the Shipment
+     */
+    private boolean arrived;
+    /**
+     * A boolean variable for transferring the offloaded flag for the Shipment
+     */
+    private boolean offloaded;
+
+    /**
+     * INIT: The All Args constructor for creating a ShipmentResponse
+     * @param shipmentId
+     *  The ID of the Shipment
+     * @param creationAdminId
+     *  The employeeId of the admin who created the Shipment
+     * @param longItems
+     *  The List of full Items that were on the Shipment
+     * @param arrivalDate
+     *  The date the Shipment will arrive
+     * @param arrived
+     *  The status of weather the Shipment has arrived
+     * @param offloaded
+     *  The status of weather the Shipment has been offloaded
+     */
+<span class="nc" id="L58">    public ShipmentResponse(Integer shipmentId,  Integer creationAdminId, List&lt;Item&gt; longItems, LocalDate arrivalDate, boolean arrived, boolean offloaded) {</span>
+<span class="nc" id="L59">        this.shipmentId = shipmentId;</span>
+<span class="nc" id="L60">        this.creationAdminId = creationAdminId;</span>
+<span class="nc" id="L61">        CreateShortItems(longItems);</span>
+<span class="nc" id="L62">        this.arrivalDate = arrivalDate;</span>
+<span class="nc" id="L63">        this.arrived = arrived;</span>
+<span class="nc" id="L64">        this.offloaded = offloaded;</span>
+<span class="nc" id="L65">    }</span>
+
+    /**
+     * A logic method that converts a List of full Items to an ArrayList of
+     * ShortItems by creating a shortened version of the Item using only
+     * it's SKU number, name, and shipping company
+     * @param longItems
+     *  The List of normal Items
+     */
+    private void CreateShortItems(List&lt;Item&gt; longItems) {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        for (Item item : longItems) {</span>
+<span class="nc" id="L76">            ShortItem shortItem = new ShortItem (item.getSkuId(), item.getItemName(), item.getDescription(), item.getQuantity(), item.getShippingCompany().getShippingCompanyName());</span>
+<span class="nc" id="L77">            items.add(shortItem);</span>
+<span class="nc" id="L78">        }</span>
+<span class="nc" id="L79">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

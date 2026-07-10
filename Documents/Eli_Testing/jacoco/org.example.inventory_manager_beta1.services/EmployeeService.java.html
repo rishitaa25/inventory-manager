@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmployeeService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.services</a> &gt; <span class="el_source">EmployeeService.java</span></div><h1>EmployeeService.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.services;
+
+import org.example.inventory_manager_beta1.Configuration.SessionToken.JwtUtil;
+import org.example.inventory_manager_beta1.DTO.Employees.Login.*;
+import org.example.inventory_manager_beta1.DTO.Employees.SignUp.*;
+import org.example.inventory_manager_beta1.DTO.Employees.Update.*;
+import org.example.inventory_manager_beta1.DataEnums.AccessLevel;
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.EmployeeNotFoundException;
+import org.example.inventory_manager_beta1.entities.Employee;
+import org.example.inventory_manager_beta1.entities.Session;
+import org.example.inventory_manager_beta1.repositories.AdminRepository;
+import org.example.inventory_manager_beta1.repositories.DriverRepository;
+import org.example.inventory_manager_beta1.repositories.EmployeeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * A robust service class to handle all the different logic and search methods relating
+ * to the Employee class. It is complete with all the EmployeeRepository search methods
+ * defined, and it handles every Employee related logic method with included custom error handling
+ */
+@Service
+public class EmployeeService {
+    /**
+     * The auto-injected EmployeeRepository for handling custom Employee searches
+     */
+    @Autowired
+    private final EmployeeRepository employeeRepository;
+    /**
+     * The auto-injected DriverRepository for handling custom Driver searches
+     */
+    @Autowired
+    private final DriverRepository driverRepository;
+    /**
+     * The auto-injected AdminRepository for handling custom Admin searches
+     */
+    @Autowired
+    private final AdminRepository adminRepository;
+    /**
+     *
+     */
+    @Autowired
+    private final SessionService sessionService;
+
+    /**
+     * INIT: Used for initializing the repositories for custom database checks and searches
+     * @param employeeRepository
+     *  The repository containing the custom Employee search methods
+     * @param driverRepository
+     * The repository containing the custom Driver search methods
+     * @param adminRepository
+     * The repository containing the custom Admin search methods
+     */
+<span class="fc" id="L57">    public EmployeeService(EmployeeRepository employeeRepository, DriverRepository driverRepository, AdminRepository adminRepository, SessionService sessionService) {</span>
+<span class="fc" id="L58">        this.employeeRepository = employeeRepository;</span>
+<span class="fc" id="L59">        this.driverRepository = driverRepository;</span>
+<span class="fc" id="L60">        this.adminRepository = adminRepository;</span>
+<span class="fc" id="L61">        this.sessionService = sessionService;</span>
+<span class="fc" id="L62">    }</span>
+
+    /**
+     * An auto-injected Argon2 PasswordEncoder for handling password hashing
+     */
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    /**
+     *
+     */
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    /*==================================SEARCH METHODS==================================*/
+
+    /**
+     * SEARCH: A search method for finding an Employee using their
+     * identification number
+     * @param id
+     *  The identification number of the Employee being searched for
+     * @return
+     *  The Employee with the matching ID number if they exist
+     * @throws EmployeeNotFoundException
+     *  Custom NotFound exception if the Employee ID search returns null
+     */
+    public Employee findById(Integer id) {
+<span class="nc" id="L89">        return employeeRepository.findById(id)</span>
+<span class="nc" id="L90">                .orElseThrow(() -&gt; new EmployeeNotFoundException(&quot;Employee with ID: &quot; + id + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding an Employee using their Social Security Number
+     * @param SSN
+     *  The Social Security Number of the Employee being searched for
+     * @return
+     *  The Employee with the matching SSN if it exists
+     * @throws EmployeeNotFoundException
+     *  Custom NotFound exception if the Employee SSN search returns null
+     */
+    public Employee findBySSN(String SSN) {
+<span class="nc" id="L103">        return employeeRepository.findBySsn(SSN)</span>
+<span class="nc" id="L104">                .orElseThrow(() -&gt; new EmployeeNotFoundException(&quot;Employee with SSN: &quot; + SSN + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding Employees using their first name
+     * @param firstName
+     *  The first name of the Employee(s) being searched for
+     * @return
+     *  A list of all the Employees with a matching first name
+     */
+<span class="nc" id="L114">    public List&lt;Employee&gt; findByFirstName(String firstName) {return employeeRepository.findByFirstName(firstName);}</span>
+
+    /**
+     * SEARCH: A search method for finding Employees using their last name
+     * @param lastName
+     *  The last name of the Employee(s) being searched for
+     * @return
+     *  A list of all the Employees with a matching last name
+     */
+<span class="nc" id="L123">    public List&lt;Employee&gt; findByLastName(String lastName) {return employeeRepository.findByLastName(lastName);}</span>
+
+    /**
+     * SEARCH: A search method for finding an Employee using their username
+     * @param userName
+     *  The username of the Employee being searched for
+     * @return
+     *  The Employee with the matching username if they exist
+     * @throws EmployeeNotFoundException
+     *  Custom NotFound exception if the Employee userName search returns null
+     */
+    public Employee findByUserName(String userName) {
+<span class="nc" id="L135">        return employeeRepository.findByUserName(userName)</span>
+<span class="nc" id="L136">                .orElseThrow(() -&gt; new EmployeeNotFoundException(&quot;Employee with username: &quot; + userName + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding an Employee using their email
+     * @param email
+     *  The email of the Employee being searched for
+     * @return
+     *  The Employee with the matching email if they exist
+     * @throws EmployeeNotFoundException
+     *  Custom NotFound exception if the Employee email search returns null
+     */
+    public Employee findByEmail(String email) {
+<span class="nc" id="L149">        return employeeRepository.findByEmail(email)</span>
+<span class="nc" id="L150">                .orElseThrow(() -&gt; new EmployeeNotFoundException(&quot;Employee with email: &quot; + email + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding an Employee using their phone number
+     * @param phoneNumber
+     *  The phone number of the Employee being searched for
+     * @return
+     *  The Employee with the matching phone number if they exist
+     * @throws EmployeeNotFoundException
+     *  Custom NotFound exception if the Employee phone number search returns null
+     */
+    public Employee findByPhoneNumber(String phoneNumber) {
+<span class="nc" id="L163">        return employeeRepository.findByPhoneNumber(phoneNumber)</span>
+<span class="nc" id="L164">                .orElseThrow(() -&gt; new EmployeeNotFoundException(&quot;Employee with phone number: &quot; + phoneNumber + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding Employees using their access level
+     * @param accessLevel
+     *  The access level of the Employee(s) being searched for
+     * @return
+     *  A list of all the Employees with a matching access level
+     */
+<span class="nc" id="L174">    public List&lt;Employee&gt; findByAccessLevel(AccessLevel accessLevel) {return employeeRepository.findByAccessLevel(accessLevel);}</span>
+
+    /**
+     * SEARCH: A search method for finding all Employees in the database
+     * @return
+     *  A list of all existing Employees in the database
+     */
+<span class="fc" id="L181">    public List&lt;Employee&gt; findAll() {return employeeRepository.findAll();}</span>
+
+    /*==================================LOGIC METHODS==================================*/
+
+    /**
+     * UPDATE: A logic method that saves an Employee to the database
+     * @param employee
+     *  The Employee being saved
+     */
+<span class="fc" id="L190">    public void saveEmployee(Employee employee) {employeeRepository.save(employee);}</span>
+
+    /**
+     * UPDATE: A logic method that updates an existing Employee's information
+     * @param employeeUpdateRequest
+     *  The DTO containing the new information for the Employee
+     * @return
+     *  A DTO containing a status message
+     */
+    public UpdateEmployeeResponse updateEmployee(UpdateEmployeeRequest employeeUpdateRequest) {
+<span class="nc" id="L200">        Employee updatedEmployee = findById(employeeUpdateRequest.getEmployeeId());</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (employeeUpdateRequest.getFirstName() != null)</span>
+<span class="nc" id="L202">            updatedEmployee.setFirstName(employeeUpdateRequest.getFirstName());</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">        if (employeeUpdateRequest.getLastName() != null)</span>
+<span class="nc" id="L204">            updatedEmployee.setLastName(employeeUpdateRequest.getLastName());</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        if (employeeUpdateRequest.getUserName() != null)</span>
+<span class="nc" id="L206">            updatedEmployee.setUserName(employeeUpdateRequest.getUserName());</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">        if (employeeUpdateRequest.getEmail() != null)</span>
+<span class="nc" id="L208">            updatedEmployee.setEmail(employeeUpdateRequest.getEmail());</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (employeeUpdateRequest.getPhoneNumber() != null)</span>
+<span class="nc" id="L210">            updatedEmployee.setPhoneNumber(employeeUpdateRequest.getPhoneNumber());</span>
+<span class="nc bnc" id="L211" title="All 4 branches missed.">        if (employeeUpdateRequest.getPassword() != null &amp;&amp; !employeeUpdateRequest.getPassword().isBlank()) {</span>
+<span class="nc" id="L212">            updatedEmployee.setPassword(passwordEncoder.encode(employeeUpdateRequest.getPassword()));</span>
+        }
+        //Save updated employee
+<span class="nc" id="L215">        saveEmployee(updatedEmployee);</span>
+        //Return UpdateResponse DTO for front end use
+<span class="nc" id="L217">        return new UpdateEmployeeResponse(updatedEmployee.getEmployeeId(), updatedEmployee.getUserName());</span>
+    }
+
+    /**
+     * CREATE: A logic method that creates a new Employee object, automatically
+     * hashes their password using Argon2, assigns an access level, and adds it
+     * to the database
+     * @param signUpRequest
+     *  The DTO containing all the Employee's information
+     */
+    public SignUpResponse registerEmployee(SignUpRequest signUpRequest) {
+<span class="fc" id="L228">        Employee newEmployee = new Employee(signUpRequest.getSsn(),</span>
+<span class="fc" id="L229">                                         signUpRequest.getFirstName(),</span>
+<span class="fc" id="L230">                                         signUpRequest.getLastName(),</span>
+<span class="fc" id="L231">                                         signUpRequest.getUserName(),</span>
+<span class="fc" id="L232">                                         signUpRequest.getEmail(),</span>
+<span class="fc" id="L233">                                         signUpRequest.getPhoneNumber());</span>
+<span class="fc" id="L234">        newEmployee.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));</span>
+        //Check to make sure only the very first person added to the system has access to every function
+<span class="pc bpc" id="L236" title="2 of 6 branches missed.">        if (employeeRepository.count() == 0 &amp;&amp; driverRepository.count() == 0 &amp;&amp; adminRepository.count() == 0) {</span>
+<span class="fc" id="L237">            newEmployee.setAccessLevel(AccessLevel.GENERAL_MANAGER);</span>
+        }
+        else {
+<span class="fc" id="L240">            newEmployee.setAccessLevel(AccessLevel.EMPLOYEE);</span>
+        }
+<span class="fc" id="L242">        saveEmployee(newEmployee);</span>
+<span class="fc" id="L243">        return new SignUpResponse(newEmployee.getEmployeeId(), newEmployee.getFirstName(), newEmployee.getUserName(), newEmployee.getAccessLevel());</span>
+    }
+
+    /**
+     * DELETE: A logic method that deletes an Employee from the database using their
+     * employeeId
+     * @param employeeId
+     *  The ID of the Employee being deleted
+     */
+    public void deleteEmployee(Integer employeeId) {
+        //Validation check
+<span class="nc" id="L254">        findById(employeeId);</span>
+<span class="nc" id="L255">        employeeRepository.deleteById(employeeId);</span>
+<span class="nc" id="L256">    }</span>
+
+    /**
+     * DELETE: A logic method that deletes all Employees from the database
+     */
+<span class="nc" id="L261">    public void deleteAllEmployees() {employeeRepository.deleteAll();}</span>
+
+    /**
+     *
+     * @param loginAttempt
+     * @return
+     */
+    public LoginResponse employeeLogin(LoginRequest loginAttempt) {
+<span class="fc" id="L269">        Optional&lt;Employee&gt; employeeOpt = employeeRepository.findByUserName(loginAttempt.getUserName());</span>
+
+<span class="pc bpc" id="L271" title="1 of 2 branches missed.">        if (employeeOpt.isEmpty()) {</span>
+<span class="nc" id="L272">            return new LoginResponse(&quot;User not found&quot;, null, null, null, null, null);</span>
+        }
+
+<span class="fc" id="L275">        Employee employee = employeeOpt.get();</span>
+
+<span class="pc bpc" id="L277" title="2 of 4 branches missed.">        if (employee.getPassword() == null || !passwordEncoder.matches(loginAttempt.getPassword(), employee.getPassword())) {</span>
+<span class="nc" id="L278">            return new LoginResponse(&quot;Invalid password&quot;, null, null, null, null, null);</span>
+        }
+
+        // Create a server-side session for this employee
+<span class="fc" id="L282">        Session session = sessionService.createSession(</span>
+<span class="fc" id="L283">                employee.getEmployeeId(),</span>
+<span class="fc" id="L284">                employee.getAccessLevel(),</span>
+<span class="fc" id="L285">                employee.getUserName()</span>
+        );
+
+        // Generate JWT containing only the session ID
+<span class="fc" id="L289">        String token = jwtUtil.generateToken(session.getSessionId());</span>
+
+<span class="fc" id="L291">        return new LoginResponse(</span>
+                &quot;Login successful&quot;,
+<span class="fc" id="L293">                employee.getEmployeeId(),</span>
+<span class="fc" id="L294">                employee.getFirstName(),</span>
+<span class="fc" id="L295">                employee.getLastName(),</span>
+<span class="fc" id="L296">                employee.getAccessLevel().name(),</span>
+                token
+        );
+    }
+
+    /**
+     *
+     * @param authHeader
+     * @return
+     */
+    public String employeeLogout(String authHeader) {
+<span class="nc bnc" id="L307" title="All 4 branches missed.">        if (authHeader == null || !authHeader.startsWith(&quot;Bearer &quot;)) {</span>
+<span class="nc" id="L308">            return &quot;No active session to log out of.&quot;;</span>
+        }
+<span class="nc" id="L310">        String token = authHeader.substring(7);</span>
+<span class="nc" id="L311">        String sessionId = jwtUtil.getSessionId(token);</span>
+<span class="nc" id="L312">        sessionService.closeSession(sessionId);</span>
+<span class="nc" id="L313">        return &quot;Logged out successfully.&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

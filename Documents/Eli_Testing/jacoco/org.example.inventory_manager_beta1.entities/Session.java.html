@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Session.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.entities</a> &gt; <span class="el_source">Session.java</span></div><h1>Session.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.entities;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.example.inventory_manager_beta1.DataEnums.AccessLevel;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+/**
+ * Entity representing an active user session in the database.
+ * &lt;p&gt;A {@code Session} row is created whenever any {@code Employee}, {@code Driver},
+ * or {@code Admin} logs in successfully, and deleted when they log out. If a session
+ * row doesn't exist, the corresponding JWT is immediately considered invalid.
+ * {@code JwtAuthFilter} will find no session and skip authentication entirely.
+ * &lt;p&gt;The JWT sent to the client carries &lt;em&gt;only&lt;/em&gt; the {@code sessionId}.
+ * All real auth data (who this user is, what they can access) lives here.
+ * This design allows instant logout where deleting the row invalidates the token
+ * regardless of its expiry time.
+ */
+@Entity
+@Getter
+@Setter
+@Table(name = &quot;sessions&quot;)
+@NoArgsConstructor
+public class Session {
+
+    /**
+     * The unique session identifier — a UUID generated at login time.
+     * This is what gets embedded in the JWT as the subject claim and
+     * looked up on every authenticated request.
+     */
+    @Id
+    @Column(name = &quot;session_id&quot;, updatable = false, nullable = false)
+    private String sessionId;
+
+    /**
+     * The ID of the employee who owns this session.
+     * Works for {@code Employee}, {@code Driver}, and {@code Admin} since
+     * they all share the same {@code employee_id} column via inheritance.
+     */
+    @Column(name = &quot;employee_id&quot;, nullable = false)
+    private Integer employeeId;
+
+    /**
+     * The access level of the session owner, copied from their entity at login time.
+     * Stored here so every authenticated request only needs one DB lookup
+     * (the session row) rather than also fetching the employee record.
+     */
+    @Column(name = &quot;access_level&quot;, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AccessLevel accessLevel;
+
+    /**
+     * The username of the session owner.
+     * Used to populate the Spring Security principal so controllers can
+     * identify who is making the request.
+     */
+    @Column(name = &quot;user_name&quot;, nullable = false)
+    private String userName;
+
+    /**
+     * Timestamp of when this session was created (i.e. when the user logged in).
+     * Useful for auditing and for identifying stale sessions.
+     */
+    @Column(name = &quot;created_at&quot;, nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    /**
+     * INIT: Creates a new session with an automatically generated UUID session ID.
+     * @param employeeId
+     *  The ID of the employee logging in
+     * @param accessLevel
+     *  Their access level at the time of login
+     * @param userName
+     *  Their username
+     */
+<span class="fc" id="L79">    public Session(Integer employeeId, AccessLevel accessLevel, String userName) {</span>
+<span class="fc" id="L80">        this.sessionId = UUID.randomUUID().toString();</span>
+<span class="fc" id="L81">        this.employeeId = employeeId;</span>
+<span class="fc" id="L82">        this.accessLevel = accessLevel;</span>
+<span class="fc" id="L83">        this.userName = userName;</span>
+<span class="fc" id="L84">        this.createdAt = LocalDateTime.now();</span>
+<span class="fc" id="L85">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

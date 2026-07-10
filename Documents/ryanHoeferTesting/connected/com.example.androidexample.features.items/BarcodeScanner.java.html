@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BarcodeScanner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.items</a> &gt; <span class="el_source">BarcodeScanner.java</span></div><h1>BarcodeScanner.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.items;
+
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageCapture;
+import androidx.camera.core.ImageCaptureException;
+import androidx.camera.core.Preview;
+
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LifecycleOwner;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.R;
+import com.example.androidexample.VolleySingleton;
+import com.google.common.util.concurrent.ListenableFuture;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.util.concurrent.ExecutionException;
+
+<span class="fc" id="L43">public class BarcodeScanner extends AppCompatActivity implements View.OnClickListener{</span>
+<span class="fc" id="L44">    private static final String[] CAMERA_PERMISSION = {Manifest.permission.CAMERA};;</span>
+    private static final int CAMERA_REQUEST_CODE = 10;
+    private PreviewView cameraPreview;
+    private Button scanButton, backToEditButton;
+    public TextView hintView;
+    private ListenableFuture&lt;ProcessCameraProvider&gt; cameraProviderFuture;
+    private ImageCapture imageCapture;
+<span class="fc" id="L51">    private String URL_ZXING = &quot;https://zxing.org/w/decode&quot;;</span>
+
+
+
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L59">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L60">        setContentView(R.layout.activity_scanner);</span>
+
+
+<span class="fc" id="L63">        cameraPreview = findViewById(R.id.cameraPreview);</span>
+<span class="fc" id="L64">        hintView = findViewById(R.id.hintView);</span>
+<span class="fc" id="L65">        scanButton = findViewById(R.id.scanButton);</span>
+<span class="fc" id="L66">        backToEditButton = findViewById(R.id.backToEditButton);</span>
+
+<span class="fc" id="L68">        scanButton.setOnClickListener(this);</span>
+<span class="fc" id="L69">        backToEditButton.setOnClickListener(this);</span>
+
+<span class="fc" id="L71">    }</span>
+
+    @Override
+    public void onClick(View view) {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (view.getId() == R.id.scanButton){</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if(hasCameraPermission()){</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                if(imageCapture != null){</span>
+<span class="nc" id="L78">                    takePhoto();</span>
+                }else{
+<span class="nc" id="L80">                    startCamera();</span>
+                }
+
+            }else{
+<span class="nc" id="L84">                requestPermission();</span>
+            }
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        }else if(view.getId() == R.id.backToEditButton){</span>
+<span class="nc" id="L87">            Intent intent = new Intent(BarcodeScanner.this, EditAndDeleteItem.class);</span>
+<span class="nc" id="L88">            intent.putExtra(&quot;id&quot;, hintView.getText());</span>
+<span class="nc" id="L89">            startActivity(intent);</span>
+        }
+
+<span class="nc" id="L92">    }</span>
+
+    private void startCamera(){
+<span class="nc" id="L95">        cameraProviderFuture = ProcessCameraProvider.getInstance(this);</span>
+
+<span class="nc" id="L97">        cameraProviderFuture.addListener(new Runnable() {</span>
+            @Override
+            public void run() {
+                try {
+<span class="nc" id="L101">                    ProcessCameraProvider cameraProvider = cameraProviderFuture.get();</span>
+<span class="nc" id="L102">                    bindCamera(cameraProvider);</span>
+<span class="nc" id="L103">                } catch (ExecutionException | InterruptedException e) {</span>
+<span class="nc" id="L104">                    e.printStackTrace();</span>
+<span class="nc" id="L105">                }</span>
+<span class="nc" id="L106">            }</span>
+<span class="nc" id="L107">        }, ContextCompat.getMainExecutor(this));</span>
+
+
+
+<span class="nc" id="L111">    }</span>
+
+    private void bindCamera(@NonNull ProcessCameraProvider cameraProvider){
+
+        //bind preview to screen to show live camera
+<span class="nc" id="L116">        Preview preview = new Preview.Builder().build();</span>
+<span class="nc" id="L117">        preview.setSurfaceProvider(cameraPreview.getSurfaceProvider());</span>
+
+        // select back facing camera
+<span class="nc" id="L120">        CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build();</span>
+
+        // build image capture to take picture when button is pressed
+
+<span class="nc" id="L124">        imageCapture = new ImageCapture.Builder().setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY).build();</span>
+
+
+        //bind everyting to the camera
+<span class="nc" id="L128">        cameraProvider.unbindAll();// in case something already has alrady been bound to it</span>
+<span class="nc" id="L129">        cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector,preview,imageCapture);</span>
+
+
+
+<span class="nc" id="L133">    }</span>
+
+    private void takePhoto(){
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (imageCapture == null) return;</span>
+
+<span class="nc" id="L138">        hintView.setText(&quot;taking picture&quot;);</span>
+<span class="nc" id="L139">        scanButton.setEnabled(false);// make sure two scans cannot be happening at the same time</span>
+
+<span class="nc" id="L141">        File photoFile = new File(getCacheDir(), &quot;barcode_scan.jpg&quot;);</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (photoFile.exists()) {</span>
+<span class="nc" id="L143">            photoFile.delete();</span>
+        }
+
+<span class="nc" id="L146">        ImageCapture.OutputFileOptions outputFileOptions =</span>
+<span class="nc" id="L147">                new ImageCapture.OutputFileOptions.Builder(photoFile).build();</span>
+
+<span class="nc" id="L149">        imageCapture.takePicture(outputFileOptions, ContextCompat.getMainExecutor(this),</span>
+<span class="nc" id="L150">                new ImageCapture.OnImageSavedCallback() {</span>
+                    @Override
+                    public void onImageSaved(ImageCapture.OutputFileResults outputFileResults) {
+                        try {
+                            // Read file without the Build.VERSION check
+<span class="nc" id="L155">                            java.io.FileInputStream fis = new java.io.FileInputStream(photoFile);</span>
+<span class="nc" id="L156">                            byte[] imageBytes = new byte[(int) photoFile.length()];</span>
+<span class="nc" id="L157">                            fis.read(imageBytes);</span>
+<span class="nc" id="L158">                            fis.close();</span>
+
+<span class="nc" id="L160">                            Log.d(&quot;ZXing&quot;, &quot;Image size: &quot; + imageBytes.length + &quot; bytes&quot;); // verify bytes exist</span>
+
+<span class="nc" id="L162">                            sendPostToZXing(imageBytes);</span>
+
+<span class="nc" id="L164">                        } catch (IOException e) {</span>
+<span class="nc" id="L165">                            hintView.setText(&quot;Failed to read image file.&quot;);</span>
+<span class="nc" id="L166">                            scanButton.setEnabled(true);</span>
+<span class="nc" id="L167">                            Log.e(&quot;ZXing&quot;, &quot;File read error: &quot; + e.getMessage());</span>
+<span class="nc" id="L168">                        }</span>
+<span class="nc" id="L169">                    }</span>
+                    @Override
+                    public void onError(ImageCaptureException error) {
+<span class="nc" id="L172">                        hintView.setText(&quot;failed to capture image try again&quot;);</span>
+<span class="nc" id="L173">                        scanButton.setEnabled(true);</span>
+<span class="nc" id="L174">                    }</span>
+                }
+        );
+
+
+<span class="nc" id="L179">    }</span>
+
+    public void sendPostToZXing(byte[] photoBytes) {
+<span class="nc" id="L182">        hintView.setText(&quot;Analyzing image&quot;);</span>
+<span class="nc" id="L183">        final String delimeter = &quot;ThisHasGottaBeUniqueRight&quot;;</span>
+<span class="nc" id="L184">        StringRequest stringRequest = new StringRequest(</span>
+                Request.Method.POST,
+                URL_ZXING,
+<span class="nc" id="L187">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // Handle the successful response here
+<span class="nc" id="L191">                        parseHtmlForValueAndShowResult(response);</span>
+<span class="nc" id="L192">                    }</span>
+                },
+<span class="nc" id="L194">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc bnc" id="L197" title="All 2 branches missed.">                        if(error.networkResponse != null) {</span>
+<span class="nc" id="L198">                            String body = new String(error.networkResponse.data);</span>
+<span class="nc" id="L199">                            Log.e(&quot;ZXing&quot;, &quot;Status: &quot; + error.networkResponse.statusCode);</span>
+<span class="nc" id="L200">                            Log.e(&quot;ZXing&quot;, &quot;Body: &quot; + body);</span>
+<span class="nc" id="L201">                            hintView.setText(&quot;Error: &quot; + error.networkResponse.statusCode);</span>
+                        }
+<span class="nc" id="L203">                    }</span>
+                }
+<span class="nc" id="L205">        ) {</span>
+
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L209">                return &quot;multipart/form-data;boundary=&quot; + delimeter;</span>
+            }
+
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                try {
+<span class="nc" id="L215">                    ByteArrayOutputStream body = new ByteArrayOutputStream();</span>
+<span class="nc" id="L216">                    String header = &quot;--&quot; + delimeter + &quot;\r\n&quot; + &quot;Content-Disposition: form-data; name=\&quot;f\&quot;; filename=\&quot;barcode_scan.jpg\&quot;\r\n&quot;</span>
+                            + &quot;Content-Type: image/jpeg\r\n\r\n&quot;;
+<span class="nc" id="L218">                    body.write(header.getBytes(&quot;UTF-8&quot;));</span>
+<span class="nc" id="L219">                    body.write(photoBytes);</span>
+<span class="nc" id="L220">                    body.write((&quot;\r\n--&quot; + delimeter + &quot;--\r\n&quot;).getBytes());</span>
+<span class="nc" id="L221">                    return body.toByteArray();</span>
+<span class="nc" id="L222">                } catch (UnsupportedEncodingException uee) {</span>
+<span class="nc" id="L223">                    VolleyLog.d(uee.toString());</span>
+<span class="nc" id="L224">                    return null;</span>
+<span class="nc" id="L225">                } catch (IOException e) {</span>
+<span class="nc" id="L226">                    throw new RuntimeException(e);</span>
+                }
+            }
+
+
+        };
+<span class="nc" id="L232">        stringRequest.setShouldCache(false);</span>
+<span class="nc" id="L233">        hintView.setText(&quot;sending&quot;);</span>
+<span class="nc" id="L234">        Log.d(&quot;ZXing&quot;, &quot;Sending request to ZXing...&quot;);</span>
+        // Adding request to request queue
+<span class="nc" id="L236">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L237">    }</span>
+
+    public void parseHtmlForValueAndShowResult(String html){
+<span class="fc bfc" id="L240" title="All 2 branches covered.">        if(!html.contains(&quot;Decode Succeeded&quot;)){</span>
+<span class="fc" id="L241">            hintView.setText(&quot;No Barcode Found Try again&quot;);</span>
+<span class="fc" id="L242">            return;</span>
+        }
+<span class="fc" id="L244">        int startIndex = html.indexOf(&quot;&lt;pre&gt;&quot;);</span>
+<span class="fc" id="L245">        int endIndex = html.indexOf(&quot;&lt;/pre&gt;&quot;);</span>
+
+<span class="pc bpc" id="L247" title="2 of 4 branches missed.">        if (startIndex == -1 || endIndex == -1){</span>
+<span class="nc" id="L248">            hintView.setText(&quot;Error parsing string&quot;);</span>
+<span class="nc" id="L249">            return;</span>
+
+        }
+
+<span class="fc" id="L253">        String barcodeValue = html.substring(startIndex + 5, endIndex);</span>
+<span class="fc" id="L254">        hintView.setText(barcodeValue);</span>
+
+
+<span class="fc" id="L257">    }</span>
+
+
+    private boolean hasCameraPermission() {
+<span class="nc bnc" id="L261" title="All 2 branches missed.">        return ContextCompat.checkSelfPermission(</span>
+                this,
+                Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermission() {
+<span class="nc" id="L268">        ActivityCompat.requestPermissions(</span>
+                this,
+                CAMERA_PERMISSION,
+                CAMERA_REQUEST_CODE
+        );
+<span class="nc" id="L273">    }</span>
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+<span class="nc" id="L276">        super.onRequestPermissionsResult(requestCode, permissions, grantResults);</span>
+<span class="nc bnc" id="L277" title="All 6 branches missed.">        if (requestCode == CAMERA_REQUEST_CODE</span>
+                &amp;&amp; grantResults.length &gt; 0
+                &amp;&amp; grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+<span class="nc" id="L280">            startCamera();</span>
+        } else {
+<span class="nc" id="L282">            hintView.setText(&quot;Camera permission is required to scan.&quot;);</span>
+        }
+<span class="nc" id="L284">    }</span>
+
+
+
+
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

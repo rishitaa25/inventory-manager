@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SecurityConfiguration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.Configuration</a> &gt; <span class="el_source">SecurityConfiguration.java</span></div><h1>SecurityConfiguration.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.Configuration;
+
+import org.example.inventory_manager_beta1.Configuration.SessionToken.JwtAuthFilter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+/**
+ * Central Spring Security configuration for the Inventory Manager project.
+ *
+ * &lt;p&gt;Responsibilities:
+ * &lt;ul&gt;
+ *   &lt;li&gt;Configures Argon2 password hashing used throughout the backend&lt;/li&gt;
+ *   &lt;li&gt;Registers {@link JwtAuthFilter} so every request is checked for a valid token&lt;/li&gt;
+ *   &lt;li&gt;Declares stateless session management — no {@code HttpSession} is created&lt;/li&gt;
+ *   &lt;li&gt;Whitelists public endpoints (login, signup) and keeps WebSocket and H2 open&lt;/li&gt;
+ *   &lt;li&gt;Provides a no-op {@link UserDetailsService} to prevent Spring Boot from
+ *       autoconfiguring a second conflicting security filter chain&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+public class SecurityConfiguration {
+
+    private final JwtAuthFilter jwtAuthFilter ;
+
+    /**
+     * INIT: Injects the JWT authentication filter into the security configuration.
+     * @param jwtAuthFilter
+     *  The filter that validates tokens on every request
+     */
+<span class="fc" id="L47">    public SecurityConfiguration(JwtAuthFilter  jwtAuthFilter ) {this.jwtAuthFilter = jwtAuthFilter;}</span>
+
+    /**
+     * INIT: Configures the Argon2 password encoder used for hashing and verifying
+     * passwords throughout the application.
+     * @return The configured Argon2 {@link PasswordEncoder}
+     */
+    @Bean
+<span class="fc" id="L55">    public PasswordEncoder passwordEncoder() {return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();}</span>
+
+    /**
+     * INIT: Provides a no-op {@link UserDetailsService} bean to prevent Spring Boot
+     * from autoconfiguring its own default security filter chain alongside this one.
+     * &lt;p&gt;Without this bean, Spring Boot sees no {@code UserDetailsService} and
+     * generates a random password on startup, then installs a second filter chain
+     * that intercepts requests before {@link JwtAuthFilter} runs which causes all
+     * authenticated requests to be rejected. This bean satisfies Spring's
+     * requirement without doing anything, since authentication is handled
+     * entirely via JWT sessions.
+     * @return
+     *  A {@link UserDetailsService} that always throws {@link UsernameNotFoundException}
+     */
+    @Bean
+    public UserDetailsService userDetailsService() {
+<span class="fc" id="L71">        return username -&gt; {</span>
+<span class="nc" id="L72">            throw new UsernameNotFoundException(</span>
+                    &quot;UserDetailsService is not used — authentication is handled via JWT sessions.&quot;);
+        };
+    }
+
+    /**
+     * INIT: Defines a custom {@link AuthenticationEntryPoint} that intercepts requests
+     * which reach a protected endpoint without valid authentication.
+     *
+     * &lt;p&gt;Without this, Spring Security silently returns a bare 403 with no body when
+     * a request has no session or an invalid token. This entry point returns a proper
+     * 401 UNAUTHORIZED with a plain text message instead.
+     *
+     * @return The custom {@link AuthenticationEntryPoint}
+     */
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+<span class="fc" id="L89">        return (request, response, authException) -&gt; {</span>
+<span class="nc" id="L90">            response.setStatus(HttpStatus.UNAUTHORIZED.value());</span>
+<span class="nc" id="L91">            response.setContentType(MediaType.TEXT_PLAIN_VALUE);</span>
+<span class="nc" id="L92">            response.getWriter().write(&quot;No valid session. Please login again.&quot;);</span>
+<span class="nc" id="L93">            response.getWriter().flush();</span>
+<span class="nc" id="L94">        };</span>
+    }
+
+    /**
+     * INIT: Configures the main Spring Security filter chain.
+     * &lt;p&gt;Key decisions:
+     * &lt;ul&gt;
+     *   &lt;li&gt;CSRF disabled — not needed for stateless REST APIs&lt;/li&gt;
+     *   &lt;li&gt;Sessions are STATELESS — all auth state lives in the JWT and session DB row&lt;/li&gt;
+     *   &lt;li&gt;Login and signup endpoints are public — no token required&lt;/li&gt;
+     *   &lt;li&gt;WebSocket and H2 console endpoints are kept open for dev use&lt;/li&gt;
+     *   &lt;li&gt;All other requests require a valid JWT with an active session&lt;/li&gt;
+     *   &lt;li&gt;{@link JwtAuthFilter} runs before Spring's built-in auth filter&lt;/li&gt;
+     * &lt;/ul&gt;
+     * @param http
+     *  The {@link HttpSecurity} object used to configure web-based security
+     * @return
+     *  The configured {@link SecurityFilterChain}
+     * @throws Exception
+     *  If an error occurs during security configuration
+     */
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+<span class="fc" id="L117">        http</span>
+<span class="fc" id="L118">                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for WebSocket connections</span>
+
+<span class="fc" id="L120">                .sessionManagement(session -&gt;</span>
+<span class="fc" id="L121">                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))</span>
+
+<span class="fc" id="L123">                .authorizeHttpRequests(auth -&gt; auth</span>
+<span class="fc" id="L124">                        .requestMatchers(</span>
+                                &quot;/admin/login&quot;,
+                                          &quot;/admin/signup&quot;,
+                                          &quot;/employee/login&quot;,
+                                          &quot;/employee/signup&quot;,
+                                          &quot;/driver/login&quot;,
+                                          &quot;/driver/signup&quot;
+<span class="fc" id="L131">                        ).permitAll()</span>
+<span class="fc" id="L132">                        .requestMatchers(&quot;/ws/**&quot;).permitAll()</span>
+<span class="fc" id="L133">                        .requestMatchers(&quot;/h2-console/**&quot;).permitAll()</span>
+<span class="fc" id="L134">                        .anyRequest().authenticated()</span>
+                )
+
+<span class="fc" id="L137">                .headers(headers -&gt; headers</span>
+<span class="fc" id="L138">                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)</span>
+                )
+
+<span class="fc" id="L141">                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);</span>
+
+<span class="fc" id="L143">        return http.build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChatView.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.chats</a> &gt; <span class="el_source">ChatView.java</span></div><h1>ChatView.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.chats;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+import com.example.androidexample.features.navigation.ui.MainActivity;
+import com.example.androidexample.R;
+import com.example.androidexample.VolleySingleton;
+
+import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * ChatActivity handles the chat interface where users can send and receive messages
+ * using a WebSocket connection.
+ */
+<span class="nc" id="L43">public class ChatView extends AppCompatActivity implements ChatWebSocketListener {</span>
+<span class="nc" id="L44">    private int messageCount = 0;</span>
+    private Button sendBtn,homeBtn;
+    private EditText msgEtx;
+    private TextView msgTv;
+    private LinearLayout chatView;
+    private ScrollView chatScrollView;
+    private String username,room;
+<span class="nc" id="L51">    private final String GET_CHAT_HISTORY_URL = &quot;http://coms-3090-013.class.las.iastate.edu:8080/chat/history/&quot;;</span>
+<span class="nc" id="L52">    private ArrayList&lt;ChatObj&gt; chatHistory = new ArrayList&lt;ChatObj&gt;();</span>
+    private ImageView profile, menu;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L58">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L59">        setContentView(R.layout.activity_chat);</span>
+
+        /* initialize UI elements */
+<span class="nc" id="L62">        sendBtn = (Button) findViewById(R.id.sendBtn);</span>
+<span class="nc" id="L63">        msgEtx = (EditText) findViewById(R.id.msgEdt);</span>
+<span class="nc" id="L64">        chatScrollView = findViewById(R.id.chatScrollView);</span>
+<span class="nc" id="L65">        chatView = findViewById(R.id.chatView);</span>
+<span class="nc" id="L66">        msgTv = findViewById(R.id.msgTv);</span>
+
+        //banner setup
+<span class="nc" id="L69">        profile = findViewById(R.id.profile_icon);</span>
+<span class="nc" id="L70">        menu = findViewById(R.id.menu_icon);</span>
+<span class="nc" id="L71">        BannerHelper.setupBanner(this, profile, menu);</span>
+
+
+<span class="nc" id="L74">        username = getIntent().getStringExtra(&quot;username&quot;);</span>
+<span class="nc" id="L75">        room = getIntent().getStringExtra(&quot;room&quot;);</span>
+
+        /* connect this activity to the websocket instance */
+<span class="nc" id="L78">        ChatWebSocketManager.getInstance().setWebSocketListener(ChatView.this);</span>
+
+        /* send button listener */
+<span class="nc" id="L81">        sendBtn.setOnClickListener(v -&gt; {</span>
+            try {
+                // send message
+<span class="nc" id="L84">                ChatWebSocketManager.getInstance().sendMessage(msgEtx.getText().toString());</span>
+                //clear text box once the msg is sent
+<span class="nc" id="L86">                msgEtx.setText(&quot;&quot;);</span>
+<span class="nc" id="L87">            } catch (Exception e) {</span>
+<span class="nc" id="L88">                Log.d(&quot;ExceptionSendMessage:&quot;, e.getMessage().toString());</span>
+<span class="nc" id="L89">            }</span>
+<span class="nc" id="L90">        });</span>
+<span class="nc" id="L91">        homeBtn.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L92">            startActivity(new Intent(ChatView.this, MainActivity.class));</span>
+
+<span class="nc" id="L94">        });</span>
+
+<span class="nc" id="L96">        getChatHistory();</span>
+<span class="nc" id="L97">    }</span>
+
+
+    /**
+     * Called when a message is received from the WebSocket.
+     * This method ensures that UI updates happen on the main thread.
+     */
+    @Override
+    public void onWebSocketMessage(String message) {
+        /**
+         * In Android, all UI-related operations must be performed on the main UI thread
+         * to ensure smooth and responsive user interfaces. The 'runOnUiThread' method
+         * is used to post a runnable to the UI thread's message queue, allowing UI updates
+         * to occur safely from a background or non-UI thread.
+         */
+<span class="nc" id="L112">        runOnUiThread(() -&gt; {</span>
+<span class="nc" id="L113">            TextView textView = new TextView(this);</span>
+<span class="nc" id="L114">            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(</span>
+                    300,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            if(message.substring(0,message.indexOf(':')).equals(username)){</span>
+<span class="nc" id="L118">                params.gravity = Gravity.END;</span>
+            }
+
+
+<span class="nc" id="L122">            textView.setLayoutParams(params);</span>
+<span class="nc" id="L123">            String messagePlusCount = ++messageCount + &quot; - &quot; + message;</span>
+
+<span class="nc" id="L125">            textView.setText(messagePlusCount);</span>
+<span class="nc" id="L126">            chatView.addView(textView);</span>
+
+            /*
+            String s = msgTv.getText().toString();
+            msgTv.setText(s + &quot;\n&quot;+message);
+            */
+
+<span class="nc" id="L133">        });</span>
+<span class="nc" id="L134">    }</span>
+
+    private void getChatHistory() {
+<span class="nc" id="L137">        String url = GET_CHAT_HISTORY_URL + room;</span>
+
+
+
+<span class="nc" id="L141">        JsonArrayRequest jsonArrReq = new JsonArrayRequest(</span>
+                Request.Method.GET,  // HTTP request method (GET)
+                url,      // URL of the JSON array API
+                null,                // Pass null as the request body since it's a GET request
+
+                // Response listener for handling successful response
+<span class="nc" id="L147">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+<span class="nc" id="L150">                        Log.d(&quot;Volley Response&quot;, response.toString());</span>
+                        //String respo = &quot;Volley Response: &quot; + response.toString();
+                        //msgTv.setText(respo);
+
+                        // Loop through the JSON array and extract required fields
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                        for (int i = 0; i &lt; response.length(); i++) {</span>
+                            try {
+<span class="nc" id="L157">                                JSONObject jsonObject = response.getJSONObject(i);</span>
+<span class="nc" id="L158">                                Long id = jsonObject.getLong(&quot;id&quot;);</span>
+<span class="nc" id="L159">                                String sender = jsonObject.getString(&quot;sender&quot;);</span>
+<span class="nc" id="L160">                                String room = jsonObject.getString(&quot;room&quot;);</span>
+<span class="nc" id="L161">                                String content = jsonObject.getString(&quot;content&quot;);</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">                                if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+<span class="nc" id="L163">                                    LocalDateTime timestamp = LocalDateTime.parse(jsonObject.getString(&quot;timestamp&quot;));</span>
+<span class="nc" id="L164">                                    ChatObj chatMessage = new ChatObj(id,sender,room,content,timestamp);</span>
+<span class="nc" id="L165">                                    chatHistory.add(chatMessage);</span>
+                                }
+
+<span class="nc" id="L168">                            } catch (JSONException e) {</span>
+<span class="nc" id="L169">                                e.printStackTrace(); // Handle JSON parsing errors</span>
+<span class="nc" id="L170">                            }</span>
+                        }
+<span class="nc" id="L172">                        displayChatHistory();</span>
+
+<span class="nc" id="L174">                    }</span>
+                },
+
+                // Error listener for handling request failure
+<span class="nc" id="L178">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc bnc" id="L181" title="All 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="nc" id="L182">                            String body = new String(error.networkResponse.data);</span>
+<span class="nc" id="L183">                            Log.e(&quot;Error&quot;, &quot;Status: &quot; + error.networkResponse.statusCode + &quot; Body: &quot; + body);</span>
+<span class="nc" id="L184">                            msgTv.setText(&quot;Error &quot; + error.networkResponse.statusCode + &quot;: &quot; + body);</span>
+                        }
+<span class="nc" id="L186">                    }</span>
+                }
+<span class="nc" id="L188">        ) {</span>
+            // Override getHeaders() if authentication headers are needed
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L192">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+//                headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;); // Example authentication header
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;); // Example content-type header
+<span class="nc" id="L195">                return headers;</span>
+            }
+
+            // Override getParams() if you need to send request parameters
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L201">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+//                params.put(&quot;param1&quot;, &quot;value1&quot;); // Example parameter
+//                params.put(&quot;param2&quot;, &quot;value2&quot;); // Example parameter
+<span class="nc" id="L204">                return params;</span>
+            }
+        };
+
+        // Adding request to the Volley request queue for execution
+<span class="nc" id="L209">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsonArrReq);</span>
+<span class="nc" id="L210">    }</span>
+    private void displayChatHistory(){
+
+
+<span class="nc" id="L214">        runOnUiThread(() -&gt; {</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">            for(ChatObj message : chatHistory) {</span>
+
+
+<span class="nc" id="L218">                TextView textView = new TextView(this);</span>
+<span class="nc" id="L219">                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(</span>
+                        300,
+                        ViewGroup.LayoutParams.MATCH_PARENT);
+<span class="nc bnc" id="L222" title="All 2 branches missed.">                if(message.getSender().equals(username)){</span>
+<span class="nc" id="L223">                    params.gravity = Gravity.END;</span>
+                }
+
+<span class="nc" id="L226">                String messagePlusCount = ++messageCount + &quot; - &quot; + message.getSender() + &quot;: &quot; + message.getContent();</span>
+
+<span class="nc" id="L228">                textView.setLayoutParams(params);</span>
+
+<span class="nc" id="L230">                textView.setText(messagePlusCount);</span>
+<span class="nc" id="L231">                chatView.addView(textView);</span>
+<span class="nc" id="L232">            }</span>
+<span class="nc" id="L233">            msgTv.setText(room);</span>
+
+            /*
+            String s = msgTv.getText().toString();
+            msgTv.setText(s + &quot;\n&quot;+message);
+            */
+
+<span class="nc" id="L240">        });</span>
+
+
+<span class="nc" id="L243">    }</span>
+
+    /**
+     * Called when the WebSocket connection is closed.
+     * Displays the closure reason in the TextView.
+     *
+     * @param code   The status code of the closure
+     * @param reason The reason provided for closure
+     */
+    @Override
+    public void onWebSocketClose(int code, String reason, boolean remote) {
+<span class="nc bnc" id="L254" title="All 2 branches missed.">        String closedBy = remote ? &quot;server&quot; : &quot;local&quot;;</span>
+<span class="nc" id="L255">        runOnUiThread(() -&gt; {</span>
+<span class="nc" id="L256">            String s = msgTv.getText().toString();</span>
+<span class="nc" id="L257">            msgTv.setText(s + &quot;---\nconnection closed by &quot; + closedBy + &quot;\nreason: &quot; + reason);</span>
+<span class="nc" id="L258">        });</span>
+<span class="nc" id="L259">    }</span>
+
+    @Override
+    public void onWebSocketOpen(ServerHandshake handshakedata) {
+
+<span class="nc" id="L264">        runOnUiThread(() -&gt; {</span>
+<span class="nc" id="L265">            String s = msgTv.getText().toString();</span>
+<span class="nc" id="L266">            msgTv.setText(s + &quot;\n&quot;+ handshakedata.getHttpStatusMessage());</span>
+<span class="nc" id="L267">        });</span>
+<span class="nc" id="L268">    }</span>
+
+
+    @Override
+<span class="nc" id="L272">    public void onWebSocketError(Exception ex) {}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

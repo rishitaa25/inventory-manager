@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShipmentController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.mainApplicationClasses</a> &gt; <span class="el_source">ShipmentController.java</span></div><h1>ShipmentController.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.mainApplicationClasses;
+
+import org.example.inventory_manager_beta1.DTO.Shipments.ShipmentRequest;
+import org.example.inventory_manager_beta1.DTO.Shipments.ShipmentResponse;
+import org.example.inventory_manager_beta1.DTO.Shipments.ShipmentSearchResponse;
+import org.example.inventory_manager_beta1.DTO.Shipments.ShipmentUpdateRequest;
+import org.example.inventory_manager_beta1.entities.Shipment;
+import org.example.inventory_manager_beta1.services.ShipmentService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
+
+/**
+ * A controller class containing all the different HTTP mappings for Shipment related methods
+ */
+@RestController
+@RequestMapping(&quot;/shipment&quot;)
+<span class="fc" id="L20">public class ShipmentController {</span>
+    /**
+     * The auto-injected ShipmentService class for handling shipment related logic
+     */
+    @Autowired
+    private ShipmentService shipmentService;
+
+    /**
+     * CREATE: A logic method for creating a new shipment
+     * @param shipmentRequest
+     *  The Shipment DTO containing the Shipment information from a JSON
+     * @return
+     *  True if completed
+     */
+    @PostMapping(&quot;/add&quot;)
+<span class="nc" id="L35">    public ShipmentResponse addShipment(@RequestBody ShipmentRequest shipmentRequest) {return shipmentService.addNewShipment(shipmentRequest);}</span>
+
+    /**
+     * READ: A search method that returns a specific shipment
+     * @param shipmentId
+     *  The ID of the shipment
+     * @return
+     *  The shipment object
+     */
+    @GetMapping(&quot;/find-by/id/{shipmentId}&quot;)
+<span class="nc" id="L45">    public Shipment getShipmentsViaId(@PathVariable(&quot;shipmentId&quot;) Integer shipmentId) {return shipmentService.findById(shipmentId);}</span>
+
+    /**
+     * READ: A search method that returns a List of Shipments that
+     * were driven by a specific Employee
+     * @param driverId
+     *  The employeeId of the Shipment Driver
+     * @return
+     *  A List of Shipment(s) that were driven by the specific Driver
+     */
+    @GetMapping(&quot;/find-by/driver/{driverId}&quot;)
+<span class="nc" id="L56">    public List&lt;ShipmentSearchResponse&gt; getShipmentsViaDriverId(@PathVariable(&quot;driverId&quot;) Integer driverId) {return shipmentService.findByDrivers(driverId);}</span>
+
+    /**
+     * READ: A search method that returns a List of Shipments based on
+     * their arrival status
+     * @param arrivedStatus
+     *  The arrival status of the Shipment
+     * @return
+     *  A List of Shipment(s) with a matching arrival status
+     */
+    @GetMapping(&quot;/find-by/arrived/{arrivedStatus}&quot;)
+<span class="nc" id="L67">    public List&lt;ShipmentSearchResponse&gt; getShipmentsViaArrivedStatus(@PathVariable(&quot;arrivedStatus&quot;) boolean arrivedStatus) {return shipmentService.findByArrived(arrivedStatus);}</span>
+
+    /**
+     * READ: A search method that returns a List of Shipments based on
+     * their delivery date
+     * @param deliveryDate
+     *  The delivery date of the Shipment
+     * @return
+     *  A List of Shipment(s) with a matching delivery date
+     */
+    @GetMapping(&quot;/find-by/date/{deliveryDate}&quot;)
+<span class="nc" id="L78">    public List&lt;ShipmentSearchResponse&gt; getShipmentsViaDeliveryDate(@PathVariable(&quot;deliveryDate&quot;)LocalDate deliveryDate) {return shipmentService.findByDeliveryDate(deliveryDate);}</span>
+
+    /**
+     * READ: A search method that returns all shipments
+     * @return
+     *  A list of all existing shipments
+     */
+    @GetMapping(&quot;/find/all&quot;)
+<span class="nc" id="L86">    public List&lt;ShipmentSearchResponse&gt; shipments() {return shipmentService.findAll();}</span>
+
+    /**
+     * READ: A search method that returns a DTO containing all
+     * ShipmentSearchResponses
+     * @return
+     *  A List of ShipmentSearchResponse containing information about each shipment
+     */
+    @GetMapping(&quot;/find/all/dto&quot;)
+<span class="nc" id="L95">    public List&lt;ShipmentSearchResponse&gt; shipmentSearchResponses() {return shipmentService.findAllDTO();}</span>
+
+    /**
+     * UPDATE: A logic method that updates a Shipment
+     * @param shipmentUpdateRequest
+     *  The Shipment DTO containing the new Shipment information from a JSON
+     * @return
+     *  True or False
+     */
+    @PutMapping(&quot;/update&quot;)
+    public Boolean updateShipment(@RequestBody ShipmentUpdateRequest shipmentUpdateRequest) {
+<span class="nc" id="L106">        shipmentService.updateShipment(shipmentUpdateRequest);</span>
+<span class="nc" id="L107">        return true;</span>
+    }
+
+    /**
+     * UPDATE: A logic method that assigns a driver to a shipment
+     * @param driverId
+     *  The ID of the driver to be assigned
+     * @param shipmentId
+     *  The ID of the shipment the driver is being assigned to
+     * @return
+     *  True if completed
+     */
+    @PatchMapping(&quot;/{shipmentId}/addDriver/{driverId}&quot;)
+    public Boolean addDriver(@PathVariable Integer driverId, @PathVariable Integer shipmentId) {
+<span class="nc" id="L121">        shipmentService.assignDriver(driverId, shipmentId);</span>
+<span class="nc" id="L122">        return true;</span>
+    }
+
+    /**
+     * UPDATE: A logic method that sets the delivery status of a shipment to arrived
+     * @param shipmentId
+     *  The ID of the shipment that has arrived
+     * @return
+     *  True if completed
+     */
+    @PatchMapping(&quot;/{shipmentId}/arrived&quot;)
+    public Boolean arrivedShipment(@PathVariable(&quot;shipmentId&quot;) Integer shipmentId) {
+<span class="nc" id="L134">        shipmentService.arrived(shipmentId);</span>
+<span class="nc" id="L135">        return true;</span>
+    }
+
+    /**
+     * UPDATE: A logic method that simulates the offloading of a shipment's items into inventory
+     * @param shipmentId
+     *  The ID of the shipment being offloaded
+     * @return
+     *  True if completed
+     */
+    @PatchMapping(&quot;/{shipmentId}/offload&quot;)
+    public Boolean offloadShipment(@PathVariable(&quot;shipmentId&quot;) Integer shipmentId) {
+<span class="nc" id="L147">        shipmentService.offloadShipment(shipmentId);</span>
+<span class="nc" id="L148">        return true;</span>
+    }
+
+    /**
+     * DELETE: A logic method that deletes a shipment
+     * @param shipmentId
+     *  The ID of the shipment being deleted
+     * @return
+     *  True if completed
+     */
+    @DeleteMapping(&quot;/{shipmentId}/delete&quot;)
+    public Boolean deleteShipment(@PathVariable Integer shipmentId) {
+<span class="nc" id="L160">        shipmentService.deleteShipment(shipmentId);</span>
+<span class="nc" id="L161">        return true;</span>
+    }
+
+    /**
+     * DELETE: A logic method that deletes all shipments
+     * @return
+     *  True if completed
+     */
+    @DeleteMapping(&quot;/delete/all&quot;)
+    public Boolean deleteAllShipments () {
+<span class="nc" id="L171">        shipmentService.deleteAllShipments();</span>
+<span class="nc" id="L172">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

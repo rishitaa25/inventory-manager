@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Accounts</title>
+</head>
+<body>
+    <h1>Account list</h1>
+    <div th:each="acount : ${accounts}">
+        <pre th:text="${accounts}"></pre>
+        <hr>
+    </div>
+</body>
+</html>

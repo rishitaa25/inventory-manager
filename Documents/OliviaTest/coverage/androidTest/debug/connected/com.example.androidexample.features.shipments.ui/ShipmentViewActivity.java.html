@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShipmentViewActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.features.shipments.ui</a> &gt; <span class="el_source">ShipmentViewActivity.java</span></div><h1>ShipmentViewActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.features.shipments.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.androidexample.features.navigation.Services.BannerHelper;
+import com.example.androidexample.R;
+import com.example.androidexample.features.NetworkCallback;
+import com.example.androidexample.features.shipments.model.ShipmentObject;
+import com.example.androidexample.features.shipments.services.ShipmentItemRequestMethods;
+import com.example.androidexample.features.shipments.services.ShipmentRequestMethods;
+import com.example.androidexample.features.shipments.ui.adapters.ShipmentItemAdapter;
+import com.example.androidexample.features.shipments.model.ShipmentItemObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="nc" id="L25">public class ShipmentViewActivity extends AppCompatActivity{</span>
+
+        // UI components
+        private ImageView backButton, profile, deleteButton, editButton, searchArrow, menu;
+        private TextView shipmentItemStatusMsg, shipmentInfo, shipmentID;
+        private EditText itemId;
+        private List&lt;ShipmentItemObject&gt; shipmentItemList;
+        private ListView shipmentItemListView;
+        private ShipmentItemAdapter adapter;
+<span class="nc" id="L34">        private boolean isDeleteConfirmed = false;</span>
+
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L39">            super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L40">            setContentView(R.layout.activity_shipment_item_list);</span>
+
+            // Get shipment object and it's attributes
+<span class="nc" id="L43">            ShipmentObject shipment = (ShipmentObject) getIntent().getSerializableExtra(&quot;shipment_object&quot;);</span>
+<span class="nc" id="L44">            int shipmentId = shipment.getShipmentId();</span>
+<span class="nc" id="L45">            String creationAdmin = shipment.getCreationAdmin();</span>
+<span class="nc" id="L46">            String deliveryDate = shipment.getDeliveryDate().toString();</span>
+<span class="nc" id="L47">            String arrived = shipment.getArrived().toString();</span>
+<span class="nc" id="L48">            String offloaded = shipment.getOffloaded().toString();</span>
+
+
+            // Initialize UI components
+<span class="nc" id="L52">            shipmentItemStatusMsg = findViewById(R.id.shipment_item_status_msg);</span>
+            //profile = findViewById(R.id.home_icon);
+<span class="nc" id="L54">            deleteButton = findViewById(R.id.delete_icon);</span>
+<span class="nc" id="L55">            editButton = findViewById(R.id.edit_icon);</span>
+<span class="nc" id="L56">            shipmentID = findViewById(R.id.shipment_title);</span>
+<span class="nc" id="L57">            shipmentItemListView = findViewById(R.id.shipment_item_list_view);</span>
+<span class="nc" id="L58">            shipmentInfo = findViewById(R.id.shipment_info);</span>
+<span class="nc" id="L59">            backButton = findViewById(R.id.back_icon);</span>
+<span class="nc" id="L60">            searchArrow = findViewById(R.id.search_icon);</span>
+<span class="nc" id="L61">            itemId = findViewById(R.id.shipment_item_id);</span>
+<span class="nc" id="L62">            menu = findViewById(R.id.menu_icon);</span>
+
+
+
+<span class="nc" id="L66">            BannerHelper.setupBanner(this, profile, menu);</span>
+
+
+            //set up list
+<span class="nc" id="L70">            shipmentItemList = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L72">            List&lt;ShipmentItemObject&gt; items = shipment.getItems();</span>
+<span class="nc" id="L73">            Log.d(&quot;SHIPMENT_ITEMS&quot;, items.toString());</span>
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            if (items != null) {</span>
+<span class="nc" id="L76">                shipmentItemList.addAll(items);</span>
+            }
+
+<span class="nc" id="L79">            shipmentInfo.setText(&quot;Arrival Date: &quot; + deliveryDate + &quot;\n&quot; +</span>
+                    &quot;Arrived: &quot; + arrived + &quot;\n&quot; +
+                    &quot;Offloaded: &quot; + offloaded + &quot;\n&quot; +
+                    &quot;Created by: &quot; + creationAdmin);
+
+<span class="nc" id="L84">            adapter = new ShipmentItemAdapter(this, shipmentItemList);</span>
+<span class="nc" id="L85">            shipmentItemListView.setAdapter(adapter);</span>
+
+<span class="nc" id="L87">            shipmentID.setText(&quot;Shipment: &quot; + shipmentId);</span>
+
+
+//            profile.setOnClickListener(view -&gt;
+//                    startActivity(new Intent(ShipmentViewActivity.this, HomeActivity.class)));
+
+<span class="nc" id="L93">            backButton.setOnClickListener(view -&gt;</span>
+<span class="nc" id="L94">                    startActivity(new Intent(ShipmentViewActivity.this, ShipmentListViewActivity.class)));</span>
+
+
+<span class="nc" id="L97">            editButton.setOnClickListener(view -&gt; {</span>
+<span class="nc" id="L98">                Intent intent = new Intent(ShipmentViewActivity.this, shipmentEditActivity.class);</span>
+<span class="nc" id="L99">                intent.putExtra(&quot;shipment_object&quot;, shipment);</span>
+<span class="nc" id="L100">                startActivity(intent);</span>
+<span class="nc" id="L101">            });</span>
+
+
+<span class="nc" id="L104">            deleteButton.setOnClickListener(view -&gt; {</span>
+
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                if (!isDeleteConfirmed) {</span>
+                    // First click → ask for confirmation
+<span class="nc" id="L108">                    shipmentItemStatusMsg.setText(&quot;Are you sure you want to delete? Click delete again to confirm.&quot;);</span>
+<span class="nc" id="L109">                    isDeleteConfirmed = true;</span>
+<span class="nc" id="L110">                    return;</span>
+                }
+
+<span class="nc" id="L113">                ShipmentRequestMethods.deleteShipmentRequest(this, shipmentId, new NetworkCallback&lt;String&gt;() {</span>
+
+                    @Override
+                    public void onSuccess(String response)
+                    {
+<span class="nc" id="L118">                        shipmentItemStatusMsg.setText(response);</span>
+<span class="nc" id="L119">                        startActivity(new Intent(ShipmentViewActivity.this, ShipmentListViewActivity.class));</span>
+<span class="nc" id="L120">                    }</span>
+
+                    @Override
+                    public void onError(String error)
+                    {
+<span class="nc" id="L125">                        shipmentItemStatusMsg.setText(error);</span>
+<span class="nc" id="L126">                    }</span>
+                });
+
+
+<span class="nc" id="L130">            });</span>
+
+<span class="nc" id="L132">            searchArrow.setOnClickListener(view -&gt; {</span>
+<span class="nc" id="L133">                String stringId = itemId.getText().toString();</span>
+
+                int id;
+                try {
+<span class="nc" id="L137">                    id = Integer.parseInt(stringId);</span>
+<span class="nc" id="L138">                } catch (NumberFormatException e) {</span>
+<span class="nc" id="L139">                    shipmentItemStatusMsg.setText(&quot;ID must be a number&quot;);</span>
+<span class="nc" id="L140">                    return;</span>
+<span class="nc" id="L141">                }</span>
+
+<span class="nc bnc" id="L143" title="All 2 branches missed.">                if (stringId.isEmpty()) {</span>
+<span class="nc" id="L144">                    shipmentItemStatusMsg.setText(&quot;Complete all fields&quot;);</span>
+<span class="nc" id="L145">                    return;</span>
+                }
+
+<span class="nc" id="L148">                shipmentItemStatusMsg.setText(&quot;Loading...&quot;);</span>
+
+<span class="nc" id="L150">                ShipmentItemRequestMethods.viewItemRequest(this, id, new NetworkCallback&lt;ShipmentItemObject&gt;() {</span>
+                    @Override
+                    public void onSuccess(ShipmentItemObject response) {
+<span class="nc" id="L153">                        shipmentItemStatusMsg.setText(&quot;Success!&quot;);</span>
+<span class="nc" id="L154">                        Intent intent = new Intent(ShipmentViewActivity.this, ShipmentItemViewActivity.class);</span>
+<span class="nc" id="L155">                        intent.putExtra(&quot;shipment_object&quot;, response);</span>
+
+<span class="nc" id="L157">                        startActivity(intent);</span>
+<span class="nc" id="L158">                    }</span>
+
+                    @Override
+                    public void onError(String error) {
+<span class="nc" id="L162">                        shipmentItemStatusMsg.setText(error);</span>
+<span class="nc" id="L163">                    }</span>
+                });
+
+<span class="nc" id="L166">            });</span>
+
+<span class="nc" id="L168">            shipmentItemListView.setOnItemClickListener((parent, view, position, id) -&gt; {</span>
+<span class="nc" id="L169">                        ShipmentItemObject clickedShipment = (ShipmentItemObject) parent.getItemAtPosition(position);</span>
+<span class="nc" id="L170">                        int shipmentItemId = clickedShipment.getSkuId();</span>
+
+<span class="nc" id="L172">                        ShipmentItemRequestMethods.viewItemRequest(this, shipmentItemId, new NetworkCallback&lt;ShipmentItemObject&gt;() {</span>
+                            @Override
+                            public void onSuccess(ShipmentItemObject response) {
+<span class="nc" id="L175">                                shipmentItemStatusMsg.setText(&quot;Success!&quot;);</span>
+<span class="nc" id="L176">                                Intent intent = new Intent(ShipmentViewActivity.this, ShipmentItemViewActivity.class);</span>
+<span class="nc" id="L177">                                intent.putExtra(&quot;shipment_object&quot;, response);</span>
+
+<span class="nc" id="L179">                                startActivity(intent);</span>
+<span class="nc" id="L180">                            }</span>
+
+                            @Override
+                            public void onError(String error) {
+<span class="nc" id="L184">                                shipmentItemStatusMsg.setText(error);</span>
+<span class="nc" id="L185">                            }</span>
+                        });
+<span class="nc" id="L187">            });</span>
+
+//            shipmentItemListView.setOnItemClickListener((parent, view, position, id) -&gt;{
+//                ShipmentItemObject clickedItem = (ShipmentItemObject) parent.getItemAtPosition(position);
+//                //int shipmentItemId = clickedItem.getSkuId();
+//
+//                Log.d(&quot;ITEM_OBJECT&quot;, String.valueOf(clickedItem));
+//
+//                Intent intent = new Intent(ShipmentViewActivity.this, ShipmentItemViewActivity.class);
+//                intent.putExtra(&quot;shipment_object&quot;, clickedItem);
+//
+//                startActivity(intent);
+//
+//
+//            });
+
+
+<span class="nc" id="L204">        }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

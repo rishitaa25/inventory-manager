@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InventoryService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Inventory_Manager_exp1</a> &gt; <a href="index.source.html" class="el_package">org.example.inventory_manager_beta1.services</a> &gt; <span class="el_source">InventoryService.java</span></div><h1>InventoryService.java</h1><pre class="source lang-java linenums">package org.example.inventory_manager_beta1.services;
+
+import org.example.inventory_manager_beta1.ExceptionHandling.Exceptions.InventoryNotFoundException;
+import org.example.inventory_manager_beta1.entities.Inventory;
+import org.example.inventory_manager_beta1.repositories.InventoryRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+/**
+ * A robust service class to handle all the different logic and search methods relating
+ * to the Inventory class. It is complete with all the InventoryRepository search methods
+ * defined, and it handles every Inventory related logic method with included custom error handling
+ */
+@Service
+public class InventoryService {
+    /**
+     * The auto-injected InventoryRepository for handling custom searches
+     */
+    @Autowired
+    private final InventoryRepository inventoryRepository;
+
+    /**
+     * INIT: Used for initializing the inventoryRepository for custom database searches
+     * @param inventoryRepository
+     *  The repository containing the custom search methods
+     */
+<span class="fc" id="L28">    public InventoryService(InventoryRepository inventoryRepository) {this.inventoryRepository = inventoryRepository;}</span>
+
+    /*==================================SEARCH METHODS==================================*/
+
+    /**
+     * SEARCH: A search method for finding an Inventory using its
+     * identification number
+     * @param id
+     *  The identification number of the Inventory being searched for
+     * @return
+     *  The Inventory with the matching ID number if it exists
+     * @throws InventoryNotFoundException
+     *  Custom NotFound exception if the Inventory ID search returns null
+     */
+    public Inventory findById(Integer id) {
+<span class="nc" id="L43">        return inventoryRepository.findById(id)</span>
+<span class="nc" id="L44">                .orElseThrow(() -&gt; new InventoryNotFoundException(&quot;Inventory with ID: &quot; + id + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding all Inventory entries in the database
+     * @return
+     *  A list of all existing Inventory entries in the database
+     */
+<span class="fc" id="L52">    public List&lt;Inventory&gt; findAll() {return inventoryRepository.findAll();}</span>
+
+    /**
+     * SEARCH: A search method for finding an Inventory entry using its SKU number
+     * @param sku
+     *  The SKU number of the Inventory entry being searched for
+     * @return
+     *  The Inventory entry with the matching SKU number if it exists
+     * @throws InventoryNotFoundException
+     *  Custom NotFound exception if the Inventory SKU search returns null
+     */
+    public Inventory findBySku(Integer sku) {
+<span class="nc" id="L64">        return inventoryRepository.findById(sku)</span>
+<span class="nc" id="L65">                .orElseThrow(() -&gt; new InventoryNotFoundException(&quot;Inventory item with SKU: &quot; + sku + &quot; not found&quot;));</span>
+    }
+
+    /**
+     * SEARCH: A search method for finding an Inventory entry using its name
+     * @param itemName
+     *  The name of the Inventory entry being searched for
+     * @return
+     *  The Inventory entry with the matching name if it exists
+     * @throws InventoryNotFoundException
+     *  Custom NotFound exception if the Inventory name search returns null
+     */
+    public Inventory findByItemName(String itemName) {
+<span class="nc" id="L78">        return inventoryRepository.findByItemName(itemName)</span>
+<span class="nc" id="L79">                .orElse(null);</span>
+    }
+
+    /*==================================LOGIC METHODS==================================*/
+
+    /**
+     * UPDATE: A logic method that saves an Inventory entry to the database
+     * @param inventory
+     *  The Inventory entry being saved
+     */
+<span class="fc" id="L89">    public void saveItem(Inventory inventory) {inventoryRepository.save(inventory);}</span>
+
+    /**
+     * DELETE: A logic method that deletes an Inventory entry from the database
+     * using its SKU number
+     * @param sku
+     *  The SKU number of the Inventory entry being deleted
+     */
+    public void deleteItem(Integer sku){
+<span class="nc" id="L98">        inventoryRepository.deleteById(sku);</span>
+<span class="nc" id="L99">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
