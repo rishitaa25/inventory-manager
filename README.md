@@ -4,6 +4,10 @@
 
 ---
 
+![Application Frontend Snapshot](images/App_ss.png)
+
+---
+
 🎥 **Project Demonstration:** https://www.youtube.com/watch?v=3WSM3dxq_iI
 
 ---
